@@ -1145,3 +1145,103 @@ input[type="range"] {
     min-width: 88px;
   }
 }
+
+/* V4.1 - Force Insight period controls to follow the main theme */
+#page-insight .insight-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 6px;
+  padding: 18px 20px;
+  border: 1px solid rgba(90, 95, 82, .10);
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+#page-insight .insight-toolbar > div:first-child {
+  min-width: 0;
+}
+
+#page-insight .period-switch {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 7px;
+  padding: 0;
+}
+
+#page-insight .period-switch button {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  outline: none;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: "Nunito Sans", Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  box-shadow: none;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    transform .18s ease;
+}
+
+#page-insight .period-switch button:hover {
+  border-color: var(--sage);
+  background: var(--sage-soft);
+  color: var(--sage-dark);
+  transform: translateY(-1px);
+}
+
+#page-insight .period-switch button.active {
+  border-color: var(--sage);
+  background: var(--sage);
+  color: #fff;
+  font-weight: 800;
+}
+
+#page-insight .period-switch button.active:hover {
+  background: var(--sage-dark);
+  border-color: var(--sage-dark);
+  color: #fff;
+}
+
+#page-insight .period-note {
+  color: var(--muted);
+  font-family: "Nunito Sans", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  #page-insight .insight-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 17px;
+    border-radius: 20px;
+  }
+
+  #page-insight .period-switch {
+    width: 100%;
+  }
+
+  #page-insight .period-switch button {
+    flex: 1 1 0;
+    min-width: 82px;
+  }
+
+  #page-insight .period-note {
+    white-space: normal;
+  }
+}
