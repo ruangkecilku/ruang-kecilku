@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="stylesheet" href="style.css?v=5.0" />
+  <link rel="stylesheet" href="style.css?v=6.0" />
 </head>
 <body>
   <div class="app-shell">
@@ -102,6 +102,17 @@
             <div class="empty-state">Belum ada aktivitas.</div>
           </div>
         </section>
+
+
+        <button class="section knowledge-entry-card" id="openKnowledgeBtn" type="button">
+          <div class="knowledge-entry-icon">✦</div>
+          <div class="knowledge-entry-copy">
+            <p class="eyebrow">Untuk kamu</p>
+            <h2>Cari Tahu Tentang Dirimu</h2>
+            <p>Kenali hal-hal yang bisa berkaitan dengan tidur, mood, pikiran, makan, minum, dan kebiasaan sehari-hari.</p>
+          </div>
+          <span class="knowledge-entry-arrow">Jelajahi →</span>
+        </button>
       </section>
 
       <!-- TRIGGER -->
@@ -439,6 +450,99 @@
         </section>
       </section>
 
+
+      <!-- CARI TAHU TENTANG DIRIMU -->
+      <section class="page knowledge-page" id="page-knowledge">
+
+        <!-- HUB -->
+        <div id="knowledgeHubView" class="knowledge-view">
+          <div class="knowledge-back-row">
+            <button class="knowledge-back-btn" id="knowledgeHubBack" type="button">← Beranda</button>
+          </div>
+
+          <div class="page-heading knowledge-heading">
+            <p class="eyebrow">Ruang kecil untuk memahami</p>
+            <h1>Cari Tahu<br>Tentang Dirimu</h1>
+            <p>Penjelasan singkat tentang hal-hal yang dapat berkaitan dengan pikiran, perasaan, tidur, dan keseharianmu. Disusun dari panduan kesehatan dan penelitian yang dapat ditelusuri.</p>
+          </div>
+
+          <div class="knowledge-gentle-note">
+            <span>✦</span>
+            <p>Informasi di sini membantu memahami pola secara umum. Pengalaman setiap orang bisa berbeda.</p>
+          </div>
+
+          <section class="section knowledge-section">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Pilih topik</p>
+                <h2>Apa yang ingin kamu pahami?</h2>
+              </div>
+            </div>
+            <div id="knowledgeCategoryGrid" class="knowledge-category-grid"></div>
+          </section>
+
+          <div class="knowledge-reviewed">
+            Informasi ditinjau untuk versi ini pada Agustus 2026.
+          </div>
+        </div>
+
+        <!-- CATEGORY -->
+        <div id="knowledgeCategoryView" class="knowledge-view hidden">
+          <div class="knowledge-back-row">
+            <button class="knowledge-back-btn" id="knowledgeCategoryBack" type="button">← Cari Tahu</button>
+          </div>
+
+          <div class="knowledge-category-head">
+            <div id="knowledgeCategoryIcon" class="knowledge-category-hero-icon">✦</div>
+            <p id="knowledgeCategoryEyebrow" class="eyebrow">Topik</p>
+            <h1 id="knowledgeCategoryTitle">-</h1>
+            <p id="knowledgeCategoryDescription">-</p>
+          </div>
+
+          <section class="section">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Mulai dari sini</p>
+                <h2>Pilih yang ingin dibaca</h2>
+              </div>
+            </div>
+            <div id="knowledgeArticleList" class="knowledge-article-list"></div>
+          </section>
+        </div>
+
+        <!-- ARTICLE -->
+        <div id="knowledgeArticleView" class="knowledge-view hidden">
+          <article class="knowledge-article">
+            <div class="knowledge-back-row">
+              <button class="knowledge-back-btn" id="knowledgeArticleBack" type="button">← Kembali</button>
+            </div>
+
+            <header class="knowledge-article-head">
+              <div id="knowledgeArticleIcon" class="knowledge-article-icon">✦</div>
+              <p id="knowledgeArticleCategory" class="eyebrow">Topik</p>
+              <h1 id="knowledgeArticleTitle">-</h1>
+              <p id="knowledgeArticleLead" class="knowledge-article-lead">-</p>
+            </header>
+
+            <div id="knowledgeArticleBody" class="knowledge-article-body"></div>
+
+            <aside class="knowledge-remember-card">
+              <p class="eyebrow">Yang perlu diingat</p>
+              <p id="knowledgeArticleRemember">-</p>
+            </aside>
+
+            <section class="knowledge-source-section">
+              <p class="eyebrow">Dasar informasi</p>
+              <div id="knowledgeArticleSources" class="knowledge-source-list"></div>
+            </section>
+
+            <p class="knowledge-disclaimer">
+              Informasi ini bersifat edukatif dan tidak digunakan untuk menentukan diagnosis atau menggantikan penilaian tenaga kesehatan.
+            </p>
+          </article>
+        </div>
+      </section>
+
     </main>
 
     <nav class="bottom-nav" aria-label="Navigasi bawah">
@@ -460,6 +564,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=5.0"></script>
+  <script src="app.js?v=6.0"></script>
 </body>
 </html>
