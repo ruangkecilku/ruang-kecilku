@@ -807,6 +807,57 @@ function showKnowledgeView(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+
+function renderKnowledgeSearch(query = "") {
+  const results = document.getElementById("knowledgeSearchResults");
+  const grid = document.getElementById("knowledgeCategoryGrid");
+  const term = query.trim().toLowerCase();
+
+  if (!term) {
+    results.classList.add("hidden");
+    results.innerHTML = "";
+    grid.classList.remove("hidden");
+    return;
+  }
+
+  const matches = KNOWLEDGE_ARTICLES.filter(article => {
+    const category = knowledgeCategoryById(article.category);
+    const haystack = [
+      article.title,
+      article.lead,
+      category ? category.title : "",
+      ...(article.body || [])
+    ].join(" ").toLowerCase();
+    return haystack.includes(term);
+  });
+
+  grid.classList.add("hidden");
+  results.classList.remove("hidden");
+
+  if (!matches.length) {
+    results.innerHTML = `<div class="knowledge-empty-search">Belum ada topik yang cocok dengan pencarianmu.</div>`;
+    return;
+  }
+
+  results.innerHTML = matches.map(article => {
+    const category = knowledgeCategoryById(article.category);
+    return `
+      <button type="button" class="knowledge-search-item" data-knowledge-search-article="${article.id}">
+        <span class="knowledge-search-item-icon">${category ? category.icon : "✦"}</span>
+        <span class="knowledge-search-item-copy">
+          <strong>${escapeHtml(article.title)}</strong>
+          <small>${escapeHtml(category ? category.title : "")}</small>
+        </span>
+        <span class="knowledge-search-item-arrow">→</span>
+      </button>
+    `;
+  }).join("");
+
+  results.querySelectorAll("[data-knowledge-search-article]").forEach(btn => {
+    btn.addEventListener("click", () => openKnowledgeArticle(btn.dataset.knowledgeSearchArticle));
+  });
+}
+
 function renderKnowledgeHub() {
   state.knowledgeCategory = null;
   state.knowledgeArticle = null;
@@ -829,6 +880,13 @@ function renderKnowledgeHub() {
   root.querySelectorAll("[data-knowledge-category]").forEach(btn => {
     btn.addEventListener("click", () => openKnowledgeCategory(btn.dataset.knowledgeCategory));
   });
+
+  const searchInput = document.getElementById("knowledgeSearch");
+  if (searchInput) {
+    searchInput.value = "";
+    searchInput.oninput = () => renderKnowledgeSearch(searchInput.value);
+  }
+  renderKnowledgeSearch("");
 
   showKnowledgeView("knowledgeHubView");
 }
@@ -1023,6 +1081,57 @@ document.getElementById("sleepForm").addEventListener("submit", e => {
   showToast("Data tidur disimpan.");
 });
 
+
+function formatHoursFancy(hours) {
+  const value = Number(hours);
+  if (!Number.isFinite(value)) return "-";
+  let whole = Math.floor(value);
+  let minutes = Math.round((value - whole) * 60);
+  if (minutes === 60) {
+    whole += 1;
+    minutes = 0;
+  }
+  if (whole <= 0 && minutes > 0) return `${minutes}m`;
+  if (minutes === 0) return `${whole}j`;
+  return `${whole}j ${String(minutes).padStart(2, "0")}m`;
+}
+
+function moodIcon(mood) {
+  const map = {
+    "Senang": "😊",
+    "Tenang": "😌",
+    "Biasa": "🙂",
+    "Cemas": "😟",
+    "Sedih": "😔",
+    "Marah": "😠",
+    "Lelah": "😪",
+    "Takut": "😣"
+  };
+  return map[mood] || "🙂";
+}
+
+function thoughtSummary(score) {
+  if (!Number.isFinite(score)) return { label: "-", meta: "Belum tercatat", icon: "☁️" };
+  if (score <= 3) return { label: "Tenang", meta: `${score}/10`, icon: "🌤️" };
+  if (score <= 6) return { label: "Sedikit ramai", meta: `${score}/10`, icon: "☁️" };
+  return { label: "Ramai", meta: `${score}/10`, icon: "⛈️" };
+}
+
+function energySummary(sleep) {
+  if (!sleep) return { label: "-", meta: "Belum ada data tidur" };
+  const hours = Number(sleep.hours || 0);
+  const quality = Number(sleep.quality || 0);
+  const score = hours + quality / 2;
+  if (score >= 10.5) return { label: "Baik", meta: "berdasarkan tidur terakhir" };
+  if (score >= 8.5) return { label: "Sedang", meta: "berdasarkan tidur terakhir" };
+  return { label: "Rendah", meta: "coba periksa pola istirahat" };
+}
+
+function truncateText(text, max = 42) {
+  const clean = String(text || "").trim().replace(/\s+/g, " ");
+  return clean.length > max ? clean.slice(0, max - 1) + "…" : clean;
+}
+
 document.getElementById("journalForm").addEventListener("submit", e => {
   e.preventDefault();
 
@@ -1050,50 +1159,63 @@ function renderHome() {
   const latestOverthinking = triggers.find(x => x.overthinking);
   const latestSleep = sleeps[0];
 
+  const hoursNow = new Date().getHours();
+  const greet = hoursNow < 11 ? "Halo, selamat pagi ☀️" : hoursNow < 16 ? "Halo, semoga harimu lembut 🌿" : hoursNow < 20 ? "Halo, semoga sorenya tenang ✨" : "Halo, semoga malammu hangat 🌙";
+  document.getElementById("homeGreeting").textContent = greet;
   document.getElementById("homeDate").textContent = formatDateLong(todayLocal());
 
+  // Mood
+  document.getElementById("homeMoodIcon").textContent = latestTrigger ? moodIcon(latestTrigger.mood) : "🙂";
   document.getElementById("homeLatestMood").textContent =
-    latestTrigger ? `${latestTrigger.mood} · ${latestTrigger.moodIntensity}/10` : "-";
+    latestTrigger ? latestTrigger.mood : "-";
   document.getElementById("homeLatestMoodMeta").textContent =
-    latestTrigger
-      ? formatActivityDate(latestTrigger.date, latestTrigger.time)
-      : "Belum ada catatan";
+    latestTrigger ? `${latestTrigger.moodIntensity}/10 · ${formatActivityDate(latestTrigger.date, latestTrigger.time)}` : "Belum ada catatan";
 
-  document.getElementById("homeLatestOverthinking").textContent =
-    latestOverthinking ? `${latestOverthinking.overthinkingIntensity}/10` : "-";
-  document.getElementById("homeLatestOverthinkingMeta").textContent =
-    latestOverthinking
-      ? formatActivityDate(latestOverthinking.date, latestOverthinking.time)
-      : "Belum tercatat";
+  // Energy
+  const energy = energySummary(latestSleep);
+  document.getElementById("homeLatestEnergy").textContent = energy.label;
+  document.getElementById("homeLatestEnergyMeta").textContent = energy.meta;
 
+  // Thoughts
+  const thought = latestOverthinking ? thoughtSummary(Number(latestOverthinking.overthinkingIntensity || 0)) : { label: "-", meta: "Belum tercatat", icon: "☁️" };
+  document.getElementById("homeThoughtIcon").textContent = thought.icon;
+  document.getElementById("homeLatestThought").textContent = thought.label;
+  document.getElementById("homeLatestThoughtMeta").textContent =
+    latestOverthinking ? `${thought.meta} · ${formatActivityDate(latestOverthinking.date, latestOverthinking.time)}` : "Belum tercatat";
+
+  // Sleep
   document.getElementById("homeLatestSleep").textContent =
-    latestSleep ? `${latestSleep.hours} jam` : "-";
+    latestSleep ? formatHoursFancy(latestSleep.hours) : "-";
   document.getElementById("homeLatestSleepMeta").textContent =
-    latestSleep
-      ? `${formatDate(latestSleep.date)} · kualitas ${latestSleep.quality}/10`
-      : "Belum ada data";
+    latestSleep ? `kualitas ${latestSleep.quality}/10 · ${formatDate(latestSleep.date)}` : "Belum ada data";
 
   const activities = [
-    ...state.triggers.map(item => ({
-      type: "trigger",
-      label: "Trigger dicatat",
+    ...state.journals.map(item => ({
+      type: "journal",
+      label: "Journal",
+      detail: truncateText(item.text || "Catatan harian"),
       date: item.date,
-      time: item.time || "",
-      timestamp: fallbackTimestamp(item, "trigger")
+      time: "",
+      timeLabel: "",
+      timestamp: fallbackTimestamp(item, "journal")
     })),
     ...state.sleep.map(item => ({
       type: "sleep",
-      label: "Data tidur dicatat",
+      label: "Tidur",
+      detail: `${formatHoursFancy(item.hours)} · kualitas ${item.quality}/10`,
       date: item.date,
       time: "",
+      timeLabel: item.end || "",
       timestamp: fallbackTimestamp(item, "sleep")
     })),
-    ...state.journals.map(item => ({
-      type: "journal",
-      label: "Journal ditulis",
+    ...state.triggers.map(item => ({
+      type: "trigger",
+      label: "Trigger",
+      detail: truncateText((item.triggers || []).join(" · ") || item.event || "Catatan trigger"),
       date: item.date,
-      time: "",
-      timestamp: fallbackTimestamp(item, "journal")
+      time: item.time || "",
+      timeLabel: item.time || "",
+      timestamp: fallbackTimestamp(item, "trigger")
     }))
   ].sort((a, b) => b.timestamp - a.timestamp);
 
@@ -1110,12 +1232,15 @@ function renderHome() {
     journal: "▤"
   };
 
-  root.innerHTML = activities.slice(0, 6).map(item => `
-    <div class="activity-item">
+  root.innerHTML = activities.slice(0, 5).map(item => `
+    <div class="activity-item activity-item-refined">
       <div class="activity-icon">${symbols[item.type]}</div>
       <div class="activity-copy">
-        <strong>${item.label}</strong>
-        <span>${formatActivityDate(item.date, item.time)}</span>
+        <div class="activity-head">
+          <strong>${item.label}</strong>
+          <span>${item.timeLabel || formatDateShort(item.date)}</span>
+        </div>
+        <small>${escapeHtml(item.detail)}</small>
       </div>
     </div>
   `).join("");
