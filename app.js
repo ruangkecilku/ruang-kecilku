@@ -265,14 +265,39 @@ function renderHome() {
   }
 
   const shortInsight = document.getElementById("shortInsight");
-  if (triggers.length < 2) {
-    shortInsight.textContent = "Belum cukup data untuk membaca pola. Isi beberapa catatan terlebih dahulu.";
-  } else {
-    const avgMood = average(triggers.map(x => x.moodIntensity));
-    const topTrigger = topFrequency(triggers.flatMap(x => x.triggers));
-    const overPct = Math.round((over.length / triggers.length) * 100);
-    shortInsight.innerHTML = `Rata-rata intensitas mood <strong>${avgMood.toFixed(1)}/10</strong>. ${overPct}% catatan berkaitan dengan overthinking.${topTrigger ? ` Trigger yang paling sering muncul adalah <strong>${escapeHtml(topTrigger[0])}</strong>.` : ""}`;
-  }
+
+if (triggers.length === 0) {
+  shortInsight.textContent =
+    "Belum ada data. Isi satu catatan trigger untuk mulai melihat insight.";
+
+} else if (triggers.length === 1) {
+  const first = triggers[0];
+
+  const triggerText = (first.triggers || []).length
+    ? ` Trigger yang tercatat: <strong>${escapeHtml(first.triggers.join(", "))}</strong>.`
+    : "";
+
+  const overthinkingText = first.overthinking
+    ? ` Overthinking tercatat dengan intensitas <strong>${first.overthinkingIntensity}/10</strong>.`
+    : " Tidak ada overthinking yang tercatat pada catatan ini.";
+
+  shortInsight.innerHTML =
+    `Catatan pertama menunjukkan mood <strong>${escapeHtml(first.mood)}</strong> ` +
+    `dengan intensitas <strong>${first.moodIntensity}/10</strong>.` +
+    overthinkingText +
+    triggerText +
+    ` Tambahkan beberapa catatan lagi untuk melihat pola yang lebih konsisten.`;
+
+} else {
+  const avgMood = average(triggers.map(x => x.moodIntensity));
+  const topTrigger = topFrequency(triggers.flatMap(x => x.triggers));
+  const overPct = Math.round((over.length / triggers.length) * 100);
+
+  shortInsight.innerHTML =
+    `Rata-rata intensitas mood <strong>${avgMood.toFixed(1)}/10</strong>. ` +
+    `${overPct}% catatan berkaitan dengan overthinking.` +
+    `${topTrigger ? ` Trigger yang paling sering muncul adalah <strong>${escapeHtml(topTrigger[0])}</strong>.` : ""}`;
+}
 }
 
 function renderTriggerHistory() {
