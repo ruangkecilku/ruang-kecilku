@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f5f2" />
+  <title>Mood Tracker</title>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigasi utama">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div>
+          <strong>Mood Tracker</strong>
+          <span>Mood & overthinking</span>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav-item active" data-page="home"><span>⌂</span><span>Beranda</span></button>
+        <button class="nav-item" data-page="trigger"><span>✦</span><span>Trigger</span></button>
+        <button class="nav-item" data-page="sleep"><span>◔</span><span>Tidur</span></button>
+        <button class="nav-item" data-page="journal"><span>▤</span><span>Journal</span></button>
+        <button class="nav-item" data-page="insight"><span>◈</span><span>Insight</span></button>
+      </nav>
+
+      <div class="sidebar-note">
+        Data tersimpan di browser ini.
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand">
+          <div class="brand-mark">M</div>
+          <div>
+            <strong>Mood Tracker</strong>
+            <span>Mood & overthinking</span>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button id="refreshBtn" class="icon-btn" title="Muat ulang data" aria-label="Muat ulang data">↻</button>
+          <button id="menuBtn" class="icon-btn" title="Pengaturan data" aria-label="Pengaturan data">⋮</button>
+        </div>
+      </header>
+
+      <div id="toast" class="toast" aria-live="polite"></div>
+
+      <!-- BERANDA -->
+      <section class="page active" id="page-home">
+        <div class="page-heading">
+          <p class="eyebrow">Hari ini</p>
+          <h1>Beranda</h1>
+          <p>Ruang kecil untuk memahami apa yang terjadi di dalam pikiran dan perasaanmu.</p>
+        </div>
+
+        <section class="section">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>Ringkasan</h2>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <article class="metric-card">
+              <span class="metric-label">Catatan trigger</span>
+              <strong id="homeTriggerCount">0</strong>
+              <span class="metric-foot">Total catatan</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Catatan overthinking</span>
+              <strong id="homeOverthinkingCount">0</strong>
+              <span class="metric-foot">Trigger terkait</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Mood terakhir</span>
+              <strong id="homeLastMood">-</strong>
+              <span id="homeLastMoodDate" class="metric-foot">Belum ada data</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Tidur terakhir</span>
+              <strong id="homeLastSleep">-</strong>
+              <span id="homeLastSleepDate" class="metric-foot">Belum ada data</span>
+            </article>
+          </div>
+        </section>
+
+        <div class="home-grid">
+          <section class="section panel">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Terbaru</p>
+                <h2>Mood Terakhir</h2>
+              </div>
+            </div>
+            <div id="latestMoodCard" class="empty-state">Belum ada catatan mood.</div>
+          </section>
+
+          <section class="section panel">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Terbaru</p>
+                <h2>Overthinking Terakhir</h2>
+              </div>
+            </div>
+            <div id="latestOverthinkingCard" class="empty-state">Belum ada catatan overthinking.</div>
+          </section>
+        </div>
+
+        <section class="section panel">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Pola sederhana</p>
+              <h2>Insight Singkat</h2>
+            </div>
+            <button class="text-btn" data-go="insight">Lihat Insight</button>
+          </div>
+          <div id="shortInsight" class="insight-copy">
+            Belum cukup data untuk membaca pola. Isi beberapa catatan terlebih dahulu.
+          </div>
+        </section>
+      </section>
+
+      <!-- TRIGGER -->
+      <section class="page" id="page-trigger">
+        <div class="page-heading">
+          <p class="eyebrow">Catatan kejadian</p>
+          <h1>Trigger</h1>
+          <p>Catat kejadian, pemicu, mood, dan pikiran yang muncul.</p>
+        </div>
+
+        <form id="triggerForm" class="section panel form-card">
+          <div class="form-section">
+            <h2>Kapan ini terjadi?</h2>
+            <div class="form-grid two">
+              <label>
+                <span>Tanggal</span>
+                <input type="date" id="triggerDate" required />
+              </label>
+              <label>
+                <span>Waktu</span>
+                <input type="time" id="triggerTime" required />
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <label>
+              <span>Apa yang terjadi?</span>
+              <textarea id="triggerEvent" rows="4" placeholder="Ceritakan kejadian yang menjadi awal munculnya perasaan atau pikiran tersebut." required></textarea>
+            </label>
+          </div>
+
+          <div class="form-section">
+            <div class="label-block">
+              <span>Apa yang menjadi pemicunya?</span>
+              <small>Boleh memilih lebih dari satu.</small>
+            </div>
+            <div class="chip-grid" id="triggerChips">
+              <label class="chip"><input type="checkbox" value="Pekerjaan"><span>Pekerjaan</span></label>
+              <label class="chip"><input type="checkbox" value="Hubungan"><span>Hubungan</span></label>
+              <label class="chip"><input type="checkbox" value="Masa depan"><span>Masa depan</span></label>
+              <label class="chip"><input type="checkbox" value="Keuangan"><span>Keuangan</span></label>
+              <label class="chip"><input type="checkbox" value="Keluarga"><span>Keluarga</span></label>
+              <label class="chip"><input type="checkbox" value="Sosial"><span>Sosial</span></label>
+              <label class="chip"><input type="checkbox" value="Kesehatan"><span>Kesehatan</span></label>
+              <label class="chip"><input type="checkbox" value="Lainnya"><span>Lainnya</span></label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2>Bagaimana rasanya?</h2>
+            <div class="form-grid two">
+              <label>
+                <span>Mood yang paling terasa</span>
+                <select id="triggerMood" required>
+                  <option value="">Pilih mood</option>
+                  <option value="Senang">Senang</option>
+                  <option value="Tenang">Tenang</option>
+                  <option value="Biasa">Biasa</option>
+                  <option value="Cemas">Cemas</option>
+                  <option value="Sedih">Sedih</option>
+                  <option value="Marah">Marah</option>
+                  <option value="Lelah">Lelah</option>
+                  <option value="Takut">Takut</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Seberapa kuat mood ini? <b id="moodIntensityValue">5</b></span>
+                <input type="range" id="moodIntensity" min="1" max="10" value="5" />
+                <small>1 = sangat ringan · 10 = sangat kuat</small>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="label-block">
+              <span>Apakah kejadian ini membuatmu overthinking?</span>
+            </div>
+            <div class="segmented" id="overthinkingToggle">
+              <button type="button" data-value="false" class="active">Tidak</button>
+              <button type="button" data-value="true">Ya</button>
+            </div>
+
+            <div id="overthinkingFields" class="conditional hidden">
+              <label>
+                <span>Seberapa kuat overthinking? <b id="overthinkingIntensityValue">5</b></span>
+                <input type="range" id="overthinkingIntensity" min="1" max="10" value="5" />
+                <small>1 = ringan · 10 = sangat kuat</small>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="label-block">
+              <span>Seberapa besar hal ini berada dalam kendalimu?</span>
+            </div>
+            <div class="segmented wrap" id="controlToggle">
+              <button type="button" data-value="Bisa aku kendalikan" class="active">Bisa aku kendalikan</button>
+              <button type="button" data-value="Sebagian">Sebagian</button>
+              <button type="button" data-value="Tidak bisa">Tidak bisa</button>
+            </div>
+          </div>
+
+          <button class="primary-btn" type="submit">Simpan Trigger</button>
+        </form>
+
+        <section class="section">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Riwayat</p>
+              <h2>Catatan Terbaru</h2>
+            </div>
+          </div>
+          <div id="triggerHistory" class="history-list"></div>
+        </section>
+      </section>
+
+      <!-- TIDUR -->
+      <section class="page" id="page-sleep">
+        <div class="page-heading">
+          <p class="eyebrow">Pola istirahat</p>
+          <h1>Tidur</h1>
+          <p>Catat durasi dan kualitas tidur untuk melihat hubungannya dengan kondisi harianmu.</p>
+        </div>
+
+        <form id="sleepForm" class="section panel form-card">
+          <div class="form-section">
+            <h2>Catatan tidur</h2>
+            <div class="form-grid three">
+              <label>
+                <span>Tanggal</span>
+                <input type="date" id="sleepDate" required />
+              </label>
+              <label>
+                <span>Mulai tidur</span>
+                <input type="time" id="sleepStart" required />
+              </label>
+              <label>
+                <span>Bangun</span>
+                <input type="time" id="sleepEnd" required />
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <label>
+              <span>Kualitas tidur <b id="sleepQualityValue">5</b></span>
+              <input type="range" id="sleepQuality" min="1" max="10" value="5" />
+              <small>1 = sangat buruk · 10 = sangat baik</small>
+            </label>
+          </div>
+
+          <div class="form-section">
+            <label>
+              <span>Catatan</span>
+              <textarea id="sleepNote" rows="4" placeholder="Opsional. Misalnya terbangun beberapa kali atau sulit mulai tidur."></textarea>
+            </label>
+          </div>
+
+          <button class="primary-btn" type="submit">Simpan Data Tidur</button>
+        </form>
+
+        <section class="section">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Riwayat</p>
+              <h2>Riwayat Tidur</h2>
+            </div>
+          </div>
+          <div id="sleepHistory" class="history-list"></div>
+        </section>
+      </section>
+
+      <!-- JOURNAL -->
+      <section class="page" id="page-journal">
+        <div class="page-heading">
+          <p class="eyebrow">Ruang pribadi</p>
+          <h1>Journal</h1>
+          <p>Tempat untuk menuliskan apa pun yang ingin kamu keluarkan hari ini.</p>
+        </div>
+
+        <form id="journalForm" class="section panel form-card">
+          <div class="form-section">
+            <h2>Tulis hari ini</h2>
+            <label>
+              <span>Tanggal</span>
+              <input type="date" id="journalDate" required />
+            </label>
+          </div>
+
+          <div class="form-section">
+            <label>
+              <span>Isi journal</span>
+              <textarea id="journalText" rows="10" placeholder="Tuliskan apa yang sedang ada di pikiranmu..." required></textarea>
+            </label>
+          </div>
+
+          <button class="primary-btn" type="submit">Simpan Journal</button>
+        </form>
+
+        <section class="section">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Riwayat</p>
+              <h2>Journal Terbaru</h2>
+            </div>
+          </div>
+          <div id="journalHistory" class="history-list"></div>
+        </section>
+      </section>
+
+      <!-- INSIGHT -->
+      <section class="page" id="page-insight">
+        <div class="page-heading">
+          <p class="eyebrow">Pola data</p>
+          <h1>Insight</h1>
+          <p>Ringkasan pola berdasarkan data yang kamu masukkan. Ini bukan diagnosis medis.</p>
+        </div>
+
+        <section class="section">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>Gambaran Data</h2>
+            </div>
+          </div>
+          <div class="summary-grid">
+            <article class="metric-card">
+              <span class="metric-label">Trigger</span>
+              <strong id="insightTriggerCount">0</strong>
+              <span class="metric-foot">Total catatan</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Overthinking</span>
+              <strong id="insightOverthinkingCount">0</strong>
+              <span class="metric-foot">Kejadian tercatat</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Rata-rata intensitas mood</span>
+              <strong id="insightMoodAverage">0.0</strong>
+              <span class="metric-foot">Skala 1–10</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Rata-rata overthinking</span>
+              <strong id="insightOverthinkingAverage">0.0</strong>
+              <span class="metric-foot">Skala 1–10</span>
+            </article>
+          </div>
+        </section>
+
+        <div class="charts-grid">
+          <section class="section panel chart-card chart-wide">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Tren</p>
+                <h2>Mood dari Waktu ke Waktu</h2>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="moodTrendChart"></canvas>
+              <div class="chart-empty" id="moodChartEmpty">Belum ada data mood.</div>
+            </div>
+          </section>
+
+          <section class="section panel chart-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Intensitas</p>
+                <h2>Overthinking</h2>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="overthinkingChart"></canvas>
+              <div class="chart-empty" id="overthinkingChartEmpty">Belum ada data overthinking.</div>
+            </div>
+          </section>
+
+          <section class="section panel chart-card">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">Distribusi</p>
+                <h2>Trigger yang Sering Muncul</h2>
+              </div>
+            </div>
+            <div class="chart-wrap donut">
+              <canvas id="triggerChart"></canvas>
+              <div class="chart-empty" id="triggerChartEmpty">Belum ada data trigger.</div>
+            </div>
+          </section>
+        </div>
+
+        <div class="insight-grid">
+          <section class="section panel">
+            <p class="eyebrow">Mood</p>
+            <h2>Mood yang Sering Muncul</h2>
+            <div id="frequentMood" class="insight-copy">Belum ada data.</div>
+          </section>
+
+          <section class="section panel">
+            <p class="eyebrow">Kendali</p>
+            <h2>Pola Kendali</h2>
+            <div id="controlPattern" class="insight-copy">Belum ada data.</div>
+          </section>
+        </div>
+
+        <section class="section panel note-panel">
+          <p class="eyebrow">Catatan</p>
+          <h2>Tentang Insight</h2>
+          <p>Insight di halaman ini hanya membantu membaca pola dari data yang kamu masukkan. Data tidak digunakan untuk menentukan diagnosis atau kondisi medis.</p>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigasi bawah">
+      <button class="bottom-item active" data-page="home"><span>⌂</span><small>Beranda</small></button>
+      <button class="bottom-item" data-page="trigger"><span>✦</span><small>Trigger</small></button>
+      <button class="bottom-item" data-page="sleep"><span>◔</span><small>Tidur</small></button>
+      <button class="bottom-item" data-page="journal"><span>▤</span><small>Journal</small></button>
+      <button class="bottom-item" data-page="insight"><span>◈</span><small>Insight</small></button>
+    </nav>
+  </div>
+
+  <div id="dataMenu" class="menu-popover hidden">
+    <button id="exportBtn">Export backup</button>
+    <label class="menu-file">
+      Import backup
+      <input id="importInput" type="file" accept="application/json" />
+    </label>
+    <button id="resetBtn" class="danger-text">Reset semua data</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
