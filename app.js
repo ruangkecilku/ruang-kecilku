@@ -4,14 +4,34 @@ const KEYS = {
   journals: "moodTracker.journals",
   checkins: "moodTracker.checkins",
   theme: "moodTracker.theme",
-  lastBackupAt: "moodTracker.lastBackupAt"
+  lastBackupAt: "moodTracker.lastBackupAt",
+  securityMeta: "temanHarian.securityMeta",
+  secureVault: "temanHarian.secureVault"
 };
 
+const DATA_KEYS = new Set([
+  KEYS.triggers,
+  KEYS.sleep,
+  KEYS.journals,
+  KEYS.checkins
+]);
+
+function securityEnabledAtBoot() {
+  try {
+    const meta = JSON.parse(localStorage.getItem(KEYS.securityMeta));
+    return Boolean(meta && meta.enabled === true && localStorage.getItem(KEYS.secureVault));
+  } catch {
+    return false;
+  }
+}
+
+const SECURITY_ENABLED_AT_BOOT = securityEnabledAtBoot();
+
 const state = {
-  triggers: load(KEYS.triggers),
-  sleep: load(KEYS.sleep),
-  journals: load(KEYS.journals),
-  checkins: load(KEYS.checkins),
+  triggers: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.triggers),
+  sleep: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.sleep),
+  journals: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.journals),
+  checkins: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.checkins),
   charts: {},
   overthinking: false,
   control: "Bisa aku kendalikan",
@@ -638,6 +658,8 @@ function knowledgeArticlesForCategory(categoryId) {
 }
 
 function load(key) {
+  if (securityEnabledAtBoot() && DATA_KEYS.has(key)) return [];
+
   try {
     const data = JSON.parse(localStorage.getItem(key));
     return Array.isArray(data) ? data : [];
@@ -646,9 +668,13 @@ function load(key) {
   }
 }
 
-function save(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
+let activeVaultKey = null;
+let vaultPersistQueue = Promise.resolve();
+let lastActivityAt = Date.now();
+let autoLockTimer = null;
+
+const AUTO_LOCK_MS = 10 * 60 * 1000;
+const PBKDF2_ITERATIONS = 310000;
 
 function loadText(key, fallback = "") {
   return localStorage.getItem(key) || fallback;
@@ -656,6 +682,331 @@ function loadText(key, fallback = "") {
 
 function saveText(key, value) {
   localStorage.setItem(key, String(value));
+}
+
+function getSecurityMeta() {
+  try {
+    return JSON.parse(localStorage.getItem(KEYS.securityMeta)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function isSecurityEnabled() {
+  const meta = getSecurityMeta();
+  return Boolean(meta && meta.enabled === true && localStorage.getItem(KEYS.secureVault));
+}
+
+function isVaultUnlocked() {
+  return isSecurityEnabled() && Boolean(activeVaultKey);
+}
+
+function dataSnapshot() {
+  return {
+    version: 1,
+    app: "Teman Harian",
+    checkins: state.checkins,
+    triggers: state.triggers,
+    sleep: state.sleep,
+    journals: state.journals
+  };
+}
+
+function applySnapshot(data) {
+  state.checkins = Array.isArray(data?.checkins) ? data.checkins : [];
+  state.triggers = Array.isArray(data?.triggers) ? data.triggers : [];
+  state.sleep = Array.isArray(data?.sleep) ? data.sleep : [];
+  state.journals = Array.isArray(data?.journals) ? data.journals : [];
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function deriveVaultKey(password, saltBytes, iterations = PBKDF2_ITERATIONS) {
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: saltBytes,
+      iterations,
+      hash: "SHA-256"
+    },
+    material,
+    {
+      name: "AES-GCM",
+      length: 256
+    },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+async function encryptSnapshotWithKey(key) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plaintext = new TextEncoder().encode(JSON.stringify(dataSnapshot()));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    plaintext
+  );
+
+  return {
+    version: 1,
+    algorithm: "AES-GCM",
+    iv: bytesToBase64(iv),
+    ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function decryptVaultWithKey(key, vault) {
+  const iv = base64ToBytes(vault.iv);
+  const ciphertext = base64ToBytes(vault.ciphertext);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext
+  );
+  return JSON.parse(new TextDecoder().decode(decrypted));
+}
+
+async function persistSecureVaultNow() {
+  if (!isSecurityEnabled() || !activeVaultKey) return;
+  const vault = await encryptSnapshotWithKey(activeVaultKey);
+  localStorage.setItem(KEYS.secureVault, JSON.stringify(vault));
+}
+
+function queueSecurePersist() {
+  if (!isSecurityEnabled() || !activeVaultKey) return Promise.resolve();
+
+  vaultPersistQueue = vaultPersistQueue
+    .catch(() => {})
+    .then(() => persistSecureVaultNow())
+    .catch(error => {
+      console.error("Secure vault save failed:", error);
+      showToast("Gagal menyimpan vault terenkripsi.");
+    });
+
+  return vaultPersistQueue;
+}
+
+async function flushSecurePersist() {
+  await vaultPersistQueue.catch(() => {});
+  if (isSecurityEnabled() && activeVaultKey) {
+    await persistSecureVaultNow();
+  }
+}
+
+function save(key, value) {
+  if (isSecurityEnabled() && DATA_KEYS.has(key)) {
+    queueSecurePersist();
+    return;
+  }
+
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function removePlaintextData() {
+  [KEYS.checkins, KEYS.triggers, KEYS.sleep, KEYS.journals].forEach(key => {
+    localStorage.removeItem(key);
+  });
+}
+
+function clearSensitiveState() {
+  state.checkins = [];
+  state.triggers = [];
+  state.sleep = [];
+  state.journals = [];
+}
+
+async function enableSecurity(password) {
+  if (!window.crypto?.subtle) {
+    throw new Error("Web Crypto API tidak tersedia. Buka situs melalui HTTPS.");
+  }
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await deriveVaultKey(password, salt, PBKDF2_ITERATIONS);
+
+  const meta = {
+    version: 1,
+    enabled: true,
+    kdf: "PBKDF2-SHA256",
+    algorithm: "AES-GCM",
+    iterations: PBKDF2_ITERATIONS,
+    salt: bytesToBase64(salt),
+    createdAt: new Date().toISOString()
+  };
+
+  activeVaultKey = key;
+  localStorage.setItem(KEYS.securityMeta, JSON.stringify(meta));
+  await persistSecureVaultNow();
+  removePlaintextData();
+  markActivity();
+  renderDataMenu();
+}
+
+async function verifyPasswordAndDeriveKey(password) {
+  const meta = getSecurityMeta();
+  const vault = JSON.parse(localStorage.getItem(KEYS.secureVault) || "null");
+
+  if (!meta || !vault) throw new Error("Vault tidak ditemukan.");
+
+  const key = await deriveVaultKey(
+    password,
+    base64ToBytes(meta.salt),
+    Number(meta.iterations || PBKDF2_ITERATIONS)
+  );
+
+  const decrypted = await decryptVaultWithKey(key, vault);
+  return { key, decrypted };
+}
+
+async function unlockVault(password) {
+  const { key, decrypted } = await verifyPasswordAndDeriveKey(password);
+  activeVaultKey = key;
+  applySnapshot(decrypted);
+  hideLockScreen();
+  markActivity();
+  renderAll();
+}
+
+async function changeMasterPassword(currentPassword, newPassword) {
+  const { decrypted } = await verifyPasswordAndDeriveKey(currentPassword);
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const newKey = await deriveVaultKey(newPassword, salt, PBKDF2_ITERATIONS);
+
+  const oldMeta = getSecurityMeta() || {};
+  const nextMeta = {
+    ...oldMeta,
+    version: 1,
+    enabled: true,
+    kdf: "PBKDF2-SHA256",
+    algorithm: "AES-GCM",
+    iterations: PBKDF2_ITERATIONS,
+    salt: bytesToBase64(salt),
+    passwordChangedAt: new Date().toISOString()
+  };
+
+  applySnapshot(decrypted);
+  activeVaultKey = newKey;
+  localStorage.setItem(KEYS.securityMeta, JSON.stringify(nextMeta));
+  await persistSecureVaultNow();
+  markActivity();
+}
+
+async function lockVault({ automatic = false } = {}) {
+  if (!isSecurityEnabled()) return;
+
+  if (activeVaultKey) {
+    try {
+      await flushSecurePersist();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  activeVaultKey = null;
+  clearSensitiveState();
+
+  if (typeof renderAll === "function") {
+    renderAll();
+  }
+
+  showLockScreen();
+  if (automatic) {
+    const error = document.getElementById("unlockError");
+    if (error) {
+      error.textContent = "Teman Harian terkunci otomatis setelah 10 menit tidak digunakan.";
+      error.classList.remove("hidden");
+    }
+  }
+}
+
+function showLockScreen() {
+  const screen = document.getElementById("vaultLockScreen");
+  if (!screen) return;
+  screen.classList.remove("hidden");
+  document.body.classList.add("vault-locked", "modal-open");
+  const password = document.getElementById("unlockPassword");
+  if (password) {
+    password.value = "";
+    setTimeout(() => password.focus(), 60);
+  }
+}
+
+function hideLockScreen() {
+  const screen = document.getElementById("vaultLockScreen");
+  if (!screen) return;
+  screen.classList.add("hidden");
+  document.body.classList.remove("vault-locked", "modal-open");
+  const error = document.getElementById("unlockError");
+  if (error) error.classList.add("hidden");
+}
+
+function markActivity() {
+  lastActivityAt = Date.now();
+  if (!isVaultUnlocked()) return;
+
+  clearTimeout(autoLockTimer);
+  autoLockTimer = setTimeout(() => {
+    lockVault({ automatic: true });
+  }, AUTO_LOCK_MS);
+}
+
+function setupActivityWatch() {
+  ["pointerdown", "keydown", "touchstart"].forEach(eventName => {
+    document.addEventListener(eventName, () => {
+      if (isVaultUnlocked()) markActivity();
+    }, { passive: true });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && isVaultUnlocked()) {
+      if (Date.now() - lastActivityAt >= AUTO_LOCK_MS) {
+        lockVault({ automatic: true });
+      } else {
+        markActivity();
+      }
+    }
+  });
+}
+
+function secureBackupObject() {
+  const meta = getSecurityMeta();
+  const vault = JSON.parse(localStorage.getItem(KEYS.secureVault) || "null");
+
+  return {
+    type: "teman-harian-secure-backup",
+    version: 1,
+    app: "Teman Harian",
+    exportedAt: new Date().toISOString(),
+    security: meta,
+    vault,
+    settings: {
+      theme: currentTheme()
+    }
+  };
 }
 
 function applyTheme(theme) {
@@ -2085,7 +2436,25 @@ function renderAll() {
   }
 }
 
-document.getElementById("refreshBtn").addEventListener("click", () => {
+document.getElementById("refreshBtn").addEventListener("click", async () => {
+  if (isSecurityEnabled()) {
+    if (!isVaultUnlocked()) {
+      showLockScreen();
+      return;
+    }
+
+    try {
+      const vault = JSON.parse(localStorage.getItem(KEYS.secureVault) || "null");
+      const decrypted = await decryptVaultWithKey(activeVaultKey, vault);
+      applySnapshot(decrypted);
+      renderAll();
+      showToast("Vault dimuat ulang.");
+    } catch {
+      await lockVault();
+    }
+    return;
+  }
+
   state.triggers = load(KEYS.triggers);
   state.sleep = load(KEYS.sleep);
   state.journals = load(KEYS.journals);
@@ -2126,6 +2495,26 @@ function renderDataMenu() {
     reminder.classList.toggle("hidden", !shouldRemind);
   }
 
+  const securityOn = isSecurityEnabled();
+  const securityCard = document.getElementById("securityStatusCard");
+  const securityTitle = document.getElementById("securityStatusTitle");
+  const securityText = document.getElementById("securityStatusText");
+  const securityPrimaryLabel = document.getElementById("securityPrimaryLabel");
+  const changePasswordBtn = document.getElementById("changePasswordBtn");
+  const exportLabel = document.getElementById("exportBtnLabel");
+
+  if (securityCard && securityTitle && securityText && securityPrimaryLabel) {
+    securityCard.classList.toggle("active", securityOn);
+    securityTitle.textContent = securityOn ? "Vault terenkripsi aktif" : "Keamanan belum aktif";
+    securityText.textContent = securityOn
+      ? "AES-GCM aktif · auto-lock 10 menit · password tidak disimpan."
+      : "Aktifkan untuk mengenkripsi Check-in, Trigger, Tidur, dan Journal.";
+    securityPrimaryLabel.textContent = securityOn ? "Kunci sekarang" : "Aktifkan keamanan";
+  }
+
+  if (changePasswordBtn) changePasswordBtn.classList.toggle("hidden", !securityOn);
+  if (exportLabel) exportLabel.textContent = securityOn ? "Export backup terenkripsi" : "Export backup";
+
   applyTheme(currentTheme());
 }
 
@@ -2139,6 +2528,161 @@ document.getElementById("themeBtn").addEventListener("click", () => {
   }
 });
 
+
+let securityModalMode = "enable";
+const securityModal = document.getElementById("securityModal");
+
+function openSecurityModal(mode = "enable") {
+  securityModalMode = mode;
+  const changing = mode === "change";
+
+  document.getElementById("securityModalTitle").textContent =
+    changing ? "Ganti password utama" : "Aktifkan keamanan";
+  document.getElementById("currentPasswordWrap").classList.toggle("hidden", !changing);
+  document.getElementById("securityCurrentPassword").required = changing;
+  document.getElementById("securityNewPasswordLabel").textContent =
+    changing ? "Password baru" : "Buat password utama";
+  document.getElementById("securitySubmitBtn").textContent =
+    changing ? "Simpan password baru" : "Aktifkan & enkripsi data";
+
+  document.getElementById("securityCurrentPassword").value = "";
+  document.getElementById("securityNewPassword").value = "";
+  document.getElementById("securityConfirmPassword").value = "";
+
+  securityModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  setTimeout(() => {
+    const target = changing
+      ? document.getElementById("securityCurrentPassword")
+      : document.getElementById("securityNewPassword");
+    target.focus();
+  }, 60);
+}
+
+function closeSecurityModal() {
+  securityModal.classList.add("hidden");
+  if (document.getElementById("vaultLockScreen").classList.contains("hidden")) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+document.getElementById("closeSecurityModalBtn").addEventListener("click", closeSecurityModal);
+securityModal.addEventListener("click", event => {
+  if (event.target === securityModal) closeSecurityModal();
+});
+
+document.getElementById("securityPrimaryBtn").addEventListener("click", async () => {
+  dataMenu.classList.add("hidden");
+
+  if (isSecurityEnabled()) {
+    await lockVault();
+  } else {
+    openSecurityModal("enable");
+  }
+});
+
+document.getElementById("changePasswordBtn").addEventListener("click", () => {
+  dataMenu.classList.add("hidden");
+  if (!isVaultUnlocked()) {
+    showLockScreen();
+    return;
+  }
+  openSecurityModal("change");
+});
+
+document.getElementById("securityForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const current = document.getElementById("securityCurrentPassword").value;
+  const next = document.getElementById("securityNewPassword").value;
+  const confirm = document.getElementById("securityConfirmPassword").value;
+  const submit = document.getElementById("securitySubmitBtn");
+
+  if (next.length < 10) {
+    showToast("Gunakan minimal 10 karakter.");
+    return;
+  }
+
+  if (next !== confirm) {
+    showToast("Ulangi password dengan sama.");
+    return;
+  }
+
+  submit.disabled = true;
+  const original = submit.textContent;
+  submit.textContent = securityModalMode === "change" ? "Mengganti..." : "Mengenkripsi...";
+
+  try {
+    if (securityModalMode === "change") {
+      await changeMasterPassword(current, next);
+      showToast("Password utama berhasil diganti.");
+    } else {
+      await enableSecurity(next);
+      showToast("Keamanan lokal aktif.");
+    }
+
+    closeSecurityModal();
+    renderAll();
+  } catch (error) {
+    console.error(error);
+    showToast(
+      securityModalMode === "change"
+        ? "Password saat ini tidak cocok."
+        : "Gagal mengaktifkan keamanan."
+    );
+  } finally {
+    submit.disabled = false;
+    submit.textContent = original;
+  }
+});
+
+document.getElementById("unlockForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const password = document.getElementById("unlockPassword").value;
+  const button = document.getElementById("unlockBtn");
+  const error = document.getElementById("unlockError");
+
+  error.classList.add("hidden");
+  button.disabled = true;
+  button.textContent = "Membuka...";
+
+  try {
+    await unlockVault(password);
+    showToast("Teman Harian terbuka.");
+  } catch {
+    error.textContent = "Password tidak cocok atau data tidak dapat dibuka.";
+    error.classList.remove("hidden");
+    document.getElementById("unlockPassword").select();
+  } finally {
+    button.disabled = false;
+    button.textContent = "Buka Teman Harian";
+  }
+});
+
+document.getElementById("lockedResetBtn").addEventListener("click", () => {
+  const ok = confirm(
+    "Hapus vault terenkripsi dan seluruh data Teman Harian di perangkat ini? Data tidak dapat dikembalikan."
+  );
+  if (!ok) return;
+
+  [
+    KEYS.checkins,
+    KEYS.triggers,
+    KEYS.sleep,
+    KEYS.journals,
+    KEYS.securityMeta,
+    KEYS.secureVault,
+    KEYS.lastBackupAt
+  ].forEach(key => localStorage.removeItem(key));
+
+  activeVaultKey = null;
+  clearSensitiveState();
+  hideLockScreen();
+  renderAll();
+  showToast("Data lokal dihapus.");
+});
+
 const dataMenu = document.getElementById("dataMenu");
 document.getElementById("menuBtn").addEventListener("click", e => {
   e.stopPropagation();
@@ -2149,40 +2693,90 @@ document.addEventListener("click", e => {
   if (!dataMenu.contains(e.target) && e.target.id !== "menuBtn") dataMenu.classList.add("hidden");
 });
 
-document.getElementById("exportBtn").addEventListener("click", () => {
-  const data = {
-    version: 2,
-    app: "Teman Harian",
-    exportedAt: new Date().toISOString(),
-    checkins: state.checkins,
-    triggers: state.triggers,
-    sleep: state.sleep,
-    journals: state.journals,
-    settings: {
-      theme: currentTheme()
+document.getElementById("exportBtn").addEventListener("click", async () => {
+  let data;
+  let filename;
+
+  if (isSecurityEnabled()) {
+    if (!isVaultUnlocked()) {
+      dataMenu.classList.add("hidden");
+      showLockScreen();
+      return;
     }
-  };
+
+    try {
+      await flushSecurePersist();
+      data = secureBackupObject();
+      filename = `teman-harian-secure-backup-${todayLocal()}.json`;
+    } catch {
+      showToast("Gagal menyiapkan backup terenkripsi.");
+      return;
+    }
+  } else {
+    data = {
+      version: 2,
+      app: "Teman Harian",
+      exportedAt: new Date().toISOString(),
+      checkins: state.checkins,
+      triggers: state.triggers,
+      sleep: state.sleep,
+      journals: state.journals,
+      settings: {
+        theme: currentTheme()
+      }
+    };
+    filename = `teman-harian-backup-${todayLocal()}.json`;
+  }
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `teman-harian-backup-${todayLocal()}.json`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
 
   saveText(KEYS.lastBackupAt, new Date().toISOString());
   renderDataMenu();
   dataMenu.classList.add("hidden");
-  showToast("Backup dibuat.");
+  showToast(isSecurityEnabled() ? "Backup terenkripsi dibuat." : "Backup dibuat.");
 });
 
-document.getElementById("importInput").addEventListener("change", async e => {
-  const file = e.target.files?.[0];
+document.getElementById("importInput").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
   if (!file) return;
 
   try {
     const data = JSON.parse(await file.text());
+
+    if (
+      data.type === "teman-harian-secure-backup" &&
+      data.security?.enabled === true &&
+      data.vault?.ciphertext &&
+      data.vault?.iv
+    ) {
+      const ok = confirm(
+        "Backup ini terenkripsi. Password yang digunakan saat backup dibuat akan diperlukan untuk membukanya. Lanjutkan?"
+      );
+      if (!ok) return;
+
+      localStorage.setItem(KEYS.securityMeta, JSON.stringify(data.security));
+      localStorage.setItem(KEYS.secureVault, JSON.stringify(data.vault));
+      removePlaintextData();
+
+      if (data.settings?.theme === "dark" || data.settings?.theme === "light") {
+        saveText(KEYS.theme, data.settings.theme);
+        applyTheme(data.settings.theme);
+      }
+
+      activeVaultKey = null;
+      clearSensitiveState();
+      renderAll();
+      dataMenu.classList.add("hidden");
+      showLockScreen();
+      showToast("Backup terenkripsi diimpor.");
+      return;
+    }
 
     if (!Array.isArray(data.triggers) || !Array.isArray(data.sleep) || !Array.isArray(data.journals)) {
       throw new Error("Format tidak valid");
@@ -2193,10 +2787,18 @@ document.getElementById("importInput").addEventListener("change", async e => {
     state.sleep = data.sleep;
     state.journals = data.journals;
 
-    save(KEYS.checkins, state.checkins);
-    save(KEYS.triggers, state.triggers);
-    save(KEYS.sleep, state.sleep);
-    save(KEYS.journals, state.journals);
+    if (isSecurityEnabled()) {
+      if (!isVaultUnlocked()) {
+        throw new Error("Vault masih terkunci.");
+      }
+      await persistSecureVaultNow();
+      removePlaintextData();
+    } else {
+      localStorage.setItem(KEYS.checkins, JSON.stringify(state.checkins));
+      localStorage.setItem(KEYS.triggers, JSON.stringify(state.triggers));
+      localStorage.setItem(KEYS.sleep, JSON.stringify(state.sleep));
+      localStorage.setItem(KEYS.journals, JSON.stringify(state.journals));
+    }
 
     if (data.settings?.theme === "dark" || data.settings?.theme === "light") {
       saveText(KEYS.theme, data.settings.theme);
@@ -2205,10 +2807,11 @@ document.getElementById("importInput").addEventListener("change", async e => {
 
     renderAll();
     showToast("Backup berhasil diimpor.");
-  } catch {
-    alert("File backup tidak valid.");
+  } catch (error) {
+    console.error(error);
+    alert("File backup tidak valid atau vault masih terkunci.");
   } finally {
-    e.target.value = "";
+    event.target.value = "";
     dataMenu.classList.add("hidden");
   }
 });
@@ -2217,11 +2820,23 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   const ok = confirm("Hapus seluruh data Teman Harian di browser ini?");
   if (!ok) return;
 
-  [KEYS.checkins, KEYS.triggers, KEYS.sleep, KEYS.journals, KEYS.lastBackupAt].forEach(key => localStorage.removeItem(key));
+  [
+    KEYS.checkins,
+    KEYS.triggers,
+    KEYS.sleep,
+    KEYS.journals,
+    KEYS.securityMeta,
+    KEYS.secureVault,
+    KEYS.lastBackupAt
+  ].forEach(key => localStorage.removeItem(key));
+
+  activeVaultKey = null;
   state.checkins = [];
   state.triggers = [];
   state.sleep = [];
   state.journals = [];
+
+  hideLockScreen();
   renderAll();
   dataMenu.classList.add("hidden");
   showToast("Semua data dihapus.");
@@ -2230,11 +2845,20 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 
 applyTheme(loadText(KEYS.theme, "light"));
 updateReflectionPrompt();
+setupActivityWatch();
 setDefaults();
 renderAll();
 
+if (isSecurityEnabled()) {
+  clearSensitiveState();
+  renderAll();
+  showLockScreen();
+} else {
+  hideLockScreen();
+}
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=9.0").catch(() => {});
+    navigator.serviceWorker.register("./sw.js?v=10.0").catch(() => {});
   });
 }

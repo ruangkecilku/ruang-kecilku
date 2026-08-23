@@ -1,7 +1,7 @@
 {
   "name": "Teman Harian",
   "short_name": "Teman Harian",
-  "description": "Ruang hangat untuk melihat bagaimana harimu berjalan.",
+  "description": "Mood, overthinking, tidur, dan journal dengan penyimpanan lokal terenkripsi.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

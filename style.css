@@ -3398,3 +3398,276 @@ html[data-theme="dark"] .knowledge-tone-cream {
     min-height: 44px;
   }
 }
+
+/* =========================================================
+   V10 SECURITY: encrypted local vault
+   ========================================================= */
+
+.security-status-card {
+  margin: 4px 0 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 9px;
+}
+
+.security-status-card.active {
+  background: var(--sage-soft);
+  border-color: rgba(92,115,95,.24);
+}
+
+.security-status-icon {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.security-status-card.active .security-status-icon {
+  color: var(--sage-dark);
+}
+
+.security-status-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.security-status-copy strong {
+  font-size: 10px;
+}
+
+.security-status-copy small {
+  color: var(--muted);
+  font-size: 8.8px;
+  line-height: 1.4;
+}
+
+.security-menu-actions {
+  display: grid;
+}
+
+/* Security setup */
+.security-sheet {
+  width: min(540px, 100%);
+  max-height: min(88vh, 760px);
+  overflow: auto;
+  padding: 25px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--card);
+  box-shadow: 0 28px 80px rgba(30,33,29,.24);
+}
+
+.security-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.security-sheet-head h2 {
+  margin: 4px 0 0;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 31px;
+  line-height: 1.05;
+  font-weight: 400;
+}
+
+.security-info-card {
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 17px;
+  background: var(--sage-soft);
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.security-info-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--card);
+  display: grid;
+  place-items: center;
+  color: var(--sage-dark);
+  font-size: 18px;
+}
+
+.security-info-card strong {
+  font-size: 11px;
+}
+
+.security-info-card p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+#securityForm {
+  display: grid;
+  gap: 15px;
+}
+
+.security-warning {
+  padding: 13px 14px;
+  border-left: 4px solid var(--pink);
+  border-radius: 0 15px 15px 0;
+  background: var(--pink-soft);
+}
+
+.security-warning strong {
+  font-size: 10px;
+}
+
+.security-warning p {
+  margin: 3px 0 0;
+  color: #66595E;
+  font-size: 9.7px;
+  line-height: 1.55;
+}
+
+/* Lock screen */
+.vault-lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(228,234,225,.88), transparent 36%),
+    radial-gradient(circle at 82% 92%, rgba(248,220,231,.72), transparent 32%),
+    var(--paper);
+  display: grid;
+  place-items: center;
+}
+
+.vault-lock-card {
+  width: min(430px, 100%);
+  padding: 30px;
+  border: 1px solid rgba(92,115,95,.13);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 24px 70px rgba(53,55,48,.13);
+  text-align: center;
+}
+
+.vault-lock-logo {
+  width: 66px;
+  height: 66px;
+  margin-bottom: 13px;
+}
+
+.vault-lock-card h1 {
+  margin: 5px 0 9px;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 37px;
+  line-height: 1.02;
+  font-weight: 400;
+}
+
+.vault-lock-copy {
+  margin: 0 auto 22px;
+  max-width: 340px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.65;
+}
+
+#unlockForm {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+}
+
+#unlockForm .primary-btn {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.unlock-error {
+  margin: -2px 0 0;
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: var(--pink-soft);
+  color: #805665;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.vault-lock-foot {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+}
+
+.vault-lock-foot span {
+  color: var(--muted);
+  font-size: 8.8px;
+  line-height: 1.5;
+}
+
+.vault-lock-foot button {
+  width: fit-content;
+  margin: 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+body.vault-locked .app-shell,
+body.vault-locked #dataMenu,
+body.vault-locked #checkinModal,
+body.vault-locked #securityModal {
+  pointer-events: none;
+  user-select: none;
+}
+
+html[data-theme="dark"] .vault-lock-screen {
+  background:
+    radial-gradient(circle at 18% 8%, rgba(57,68,58,.62), transparent 36%),
+    radial-gradient(circle at 82% 92%, rgba(73,56,63,.58), transparent 32%),
+    var(--paper);
+}
+
+html[data-theme="dark"] .security-warning p {
+  color: #D0BEC5;
+}
+
+@media (max-width: 760px) {
+  .security-sheet {
+    width: 100%;
+    max-height: 91vh;
+    border-radius: 26px 26px 0 0;
+    padding: 21px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .vault-lock-screen {
+    padding: 17px;
+  }
+
+  .vault-lock-card {
+    padding: 26px 20px;
+    border-radius: 25px;
+  }
+
+  .vault-lock-card h1 {
+    font-size: 33px;
+  }
+}

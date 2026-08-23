@@ -1,46 +1,32 @@
-# Teman Harian V9
+# Teman Harian V10 Security
 
-Versi ini memperbaiki fondasi data dan menambah fitur yang tetap ringan.
+Versi ini menambahkan keamanan localStorage tanpa database.
 
-## Perubahan penting
+## Fitur keamanan
+- Encrypted localStorage vault
+- AES-GCM 256-bit
+- PBKDF2-SHA256
+- Password utama tidak disimpan
+- Kunci enkripsi hanya berada di memory
+- Auto-lock 10 menit
+- Lock setiap reload
+- Ganti password utama
+- Encrypted JSON backup
+- Import backup terenkripsi
+- Content Security Policy
+- HTTPS-compatible
+- Tidak menggunakan Firebase, Supabase, atau database lain
 
-### Check-in cepat
-Beranda memiliki tombol **Check-in hari ini** untuk mencatat:
-- mood utama
-- mood kedua opsional
-- intensitas perasaan
-- energi yang diisi langsung oleh pengguna
-- kondisi pikiran 1–10
-- konteks harian opsional
-- catatan kecil
+## Migrasi data V9
 
-Energi tidak lagi diperkirakan dari data tidur.
+Data lama tidak langsung dihapus.
 
-### Trigger
-Ditambahkan refleksi opsional **Coba lihat dari sisi lain**.
-
-### Journal
-- prompt refleksi opsional
-- pencarian journal
-- kalender Jejak Harian
-- kalender menampilkan keberadaan check-in, trigger, tidur, dan journal
-
-### Insight
-- mood berasal dari check-in
-- pikiran ramai berasal dari check-in
-- tidur berasal dari data tidur
-- trigger tetap memakai ranking
-- hubungan data hanya dibandingkan jika jumlah data memadai
-- tersedia indikator kematangan data
-
-### Data
-- export/import backup versi 2
-- backup lama tetap dapat diimpor
-- pengingat backup jika catatan cukup banyak
-- dark mode yang hangat
-
-### PWA
-Teman Harian dapat dipasang ke Home Screen setelah GitHub Pages melakukan deployment.
+Setelah website diperbarui:
+1. Buka menu tiga titik.
+2. Pilih `Aktifkan keamanan`.
+3. Buat password utama minimal 10 karakter.
+4. Teman Harian mengenkripsi data V9 yang sedang ada.
+5. Setelah vault berhasil dibuat, salinan plaintext Check-in, Trigger, Tidur, dan Journal dihapus dari localStorage.
 
 ## File GitHub
 Upload semua file berikut ke root repository:
@@ -53,4 +39,11 @@ Upload semua file berikut ke root repository:
 - icon-192.png
 - icon-512.png
 
-Data lama Trigger, Tidur, dan Journal tetap tersimpan.
+Dokumentasi tambahan:
+- README.md
+- SECURITY.md
+
+## Sangat penting
+Tidak ada fitur lupa password karena tidak ada server atau database yang menyimpan recovery key.
+
+Simpan password utama dengan aman.

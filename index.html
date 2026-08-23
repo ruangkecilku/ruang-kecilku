@@ -4,24 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#F4EFE5" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Teman Harian" />
-  <link rel="manifest" href="manifest.webmanifest?v=9.0" />
+  <link rel="manifest" href="manifest.webmanifest?v=10.0" />
   <title>Teman Harian</title>
-  <link rel="icon" type="image/svg+xml" href="logo.svg?v=9.0" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg?v=10.0" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="stylesheet" href="style.css?v=9.0" />
+  <link rel="stylesheet" href="style.css?v=10.0" />
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Navigasi utama">
       <div class="brand">
-        <img class="brand-logo" src="logo.svg?v=9.0" alt="" aria-hidden="true" />
+        <img class="brand-logo" src="logo.svg?v=10.0" alt="" aria-hidden="true" />
         <div class="brand-copy">
           <strong>Teman Harian</strong>
           <span>Ruang hangat untuk melihat bagaimana harimu berjalan.</span>
@@ -44,7 +47,7 @@
     <main class="main">
       <header class="topbar">
         <div class="mobile-brand">
-          <img class="brand-logo" src="logo.svg?v=9.0" alt="" aria-hidden="true" />
+          <img class="brand-logo" src="logo.svg?v=10.0" alt="" aria-hidden="true" />
           <div class="brand-copy">
             <strong>Teman Harian</strong>
             <span>Ruang hangat untuk melihat bagaimana harimu berjalan.</span>
@@ -672,7 +675,26 @@
   <div id="dataMenu" class="menu-popover data-menu hidden">
     <div class="data-menu-head">
       <strong>Data Saya</strong>
-      <span>Semua catatan tersimpan di browser ini.</span>
+      <span>Catatan tetap berada di perangkat ini. Kamu bisa menambahkan enkripsi lokal untuk melindunginya.</span>
+    </div>
+
+    <div id="securityStatusCard" class="security-status-card">
+      <span class="security-status-icon">○</span>
+      <span class="security-status-copy">
+        <strong id="securityStatusTitle">Keamanan belum aktif</strong>
+        <small id="securityStatusText">Data masih disimpan seperti biasa di browser.</small>
+      </span>
+    </div>
+
+    <div class="security-menu-actions">
+      <button id="securityPrimaryBtn" class="menu-row-btn">
+        <span>⌁</span>
+        <span id="securityPrimaryLabel">Aktifkan keamanan</span>
+      </button>
+      <button id="changePasswordBtn" class="menu-row-btn hidden">
+        <span>✦</span>
+        <span>Ganti password utama</span>
+      </button>
     </div>
 
     <div id="dataMenuStats" class="data-menu-stats"></div>
@@ -689,7 +711,7 @@
 
     <button id="exportBtn" class="menu-row-btn">
       <span>⇩</span>
-      <span>Export backup</span>
+      <span id="exportBtnLabel">Export backup</span>
     </button>
 
     <label class="menu-file menu-row-btn">
@@ -700,6 +722,77 @@
 
     <div class="data-menu-backup-date" id="lastBackupText">Backup terakhir: belum pernah</div>
     <button id="resetBtn" class="danger-text menu-row-btn"><span>×</span><span>Reset semua data</span></button>
+  </div>
+
+
+  <!-- SECURITY SETUP / PASSWORD CHANGE -->
+  <div id="securityModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="securityModalTitle">
+    <div class="security-sheet">
+      <div class="security-sheet-head">
+        <div>
+          <p class="eyebrow">Keamanan lokal</p>
+          <h2 id="securityModalTitle">Aktifkan keamanan</h2>
+        </div>
+        <button id="closeSecurityModalBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
+      </div>
+
+      <div class="security-info-card">
+        <div class="security-info-icon">⌁</div>
+        <div>
+          <strong>Data tidak dikirim ke database.</strong>
+          <p>Password digunakan di perangkat ini untuk membuat kunci enkripsi. Password dan kunci enkripsi tidak disimpan di localStorage.</p>
+        </div>
+      </div>
+
+      <form id="securityForm">
+        <label id="currentPasswordWrap" class="hidden">
+          <span>Password saat ini</span>
+          <input id="securityCurrentPassword" type="password" autocomplete="current-password" />
+        </label>
+
+        <label>
+          <span id="securityNewPasswordLabel">Buat password utama</span>
+          <input id="securityNewPassword" type="password" minlength="10" autocomplete="new-password" required />
+          <small>Minimal 10 karakter. Frasa yang panjang lebih baik daripada PIN pendek.</small>
+        </label>
+
+        <label>
+          <span>Ulangi password</span>
+          <input id="securityConfirmPassword" type="password" minlength="10" autocomplete="new-password" required />
+        </label>
+
+        <div class="security-warning">
+          <strong>Penting</strong>
+          <p>Karena tidak ada server atau database, tidak ada fitur “lupa password”. Jika password hilang, data terenkripsi tidak dapat dipulihkan oleh Teman Harian.</p>
+        </div>
+
+        <button id="securitySubmitBtn" class="primary-btn" type="submit">Aktifkan & enkripsi data</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- LOCK SCREEN -->
+  <div id="vaultLockScreen" class="vault-lock-screen hidden" role="dialog" aria-modal="true" aria-labelledby="vaultLockTitle">
+    <div class="vault-lock-card">
+      <img src="logo.svg?v=10.0" class="vault-lock-logo" alt="" aria-hidden="true" />
+      <p class="eyebrow">Teman Harian</p>
+      <h1 id="vaultLockTitle">Catatanmu terkunci</h1>
+      <p class="vault-lock-copy">Masukkan password utama untuk membuka data yang tersimpan di perangkat ini.</p>
+
+      <form id="unlockForm">
+        <label>
+          <span>Password utama</span>
+          <input id="unlockPassword" type="password" autocomplete="current-password" required autofocus />
+        </label>
+        <p id="unlockError" class="unlock-error hidden">Password tidak cocok atau data tidak dapat dibuka.</p>
+        <button id="unlockBtn" class="primary-btn" type="submit">Buka Teman Harian</button>
+      </form>
+
+      <div class="vault-lock-foot">
+        <span>⌁ AES-GCM · kunci hanya berada di memori selama aplikasi terbuka</span>
+        <button id="lockedResetBtn" type="button">Hapus data lokal</button>
+      </div>
+    </div>
   </div>
 
   <div id="checkinModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="checkinTitle">
@@ -802,6 +895,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=9.0"></script>
+  <script src="app.js?v=10.0"></script>
 </body>
 </html>
