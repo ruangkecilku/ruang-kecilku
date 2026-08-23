@@ -1,19 +1,26 @@
 const KEYS = {
   triggers: "moodTracker.triggers",
   sleep: "moodTracker.sleep",
-  journals: "moodTracker.journals"
+  journals: "moodTracker.journals",
+  checkins: "moodTracker.checkins",
+  theme: "moodTracker.theme",
+  lastBackupAt: "moodTracker.lastBackupAt"
 };
 
 const state = {
   triggers: load(KEYS.triggers),
   sleep: load(KEYS.sleep),
   journals: load(KEYS.journals),
+  checkins: load(KEYS.checkins),
   charts: {},
   overthinking: false,
   control: "Bisa aku kendalikan",
   insightPeriod: 7,
   knowledgeCategory: null,
-  knowledgeArticle: null
+  knowledgeArticle: null,
+  checkinMood: null,
+  checkinEnergy: null,
+  calendarDate: new Date()
 };
 
 
@@ -643,6 +650,27 @@ function save(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function loadText(key, fallback = "") {
+  return localStorage.getItem(key) || fallback;
+}
+
+function saveText(key, value) {
+  localStorage.setItem(key, String(value));
+}
+
+function applyTheme(theme) {
+  const next = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = next;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", next === "dark" ? "#242823" : "#F4EFE5");
+  const label = document.getElementById("themeBtnLabel");
+  if (label) label.textContent = next === "dark" ? "Mode terang" : "Mode gelap";
+}
+
+function currentTheme() {
+  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+}
+
 function uid() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -672,6 +700,20 @@ function formatDateLong(date) {
     month: "long",
     year: "numeric"
   }).format(new Date(`${date}T00:00:00`));
+}
+
+function formatDateTimeFromStamp(stamp) {
+  if (!stamp) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(stamp));
+}
+
+function sameDate(dateA, dateB) {
+  return dateA && dateB && dateA === dateB;
 }
 
 function formatActivityDate(date, time = "") {
@@ -783,6 +825,13 @@ document.querySelectorAll("[data-page]").forEach(btn => {
 
 document.querySelectorAll("[data-go]").forEach(btn => {
   btn.addEventListener("click", () => switchPage(btn.dataset.go));
+});
+
+document.querySelectorAll("[data-knowledge-link-category]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    switchPage("knowledge");
+    openKnowledgeCategory(btn.dataset.knowledgeLinkCategory);
+  });
 });
 
 document.querySelectorAll("#insightPeriod [data-period]").forEach(btn => {
@@ -1006,13 +1055,155 @@ document.querySelectorAll("#overthinkingToggle button").forEach(btn => {
   });
 });
 
+function updateReflectionPrompt() {
+  const prompt = document.getElementById("reflectionPrompt");
+  if (!prompt) return;
+  if (state.control === "Bisa aku kendalikan") {
+    prompt.textContent = "Langkah kecil apa yang masih bisa kamu lakukan hari ini?";
+  } else if (state.control === "Sebagian") {
+    prompt.textContent = "Bagian mana yang masih berada dalam kendalimu?";
+  } else {
+    prompt.textContent = "Apa yang bisa membuat beberapa jam ke depan sedikit lebih ringan?";
+  }
+}
+
 document.querySelectorAll("#controlToggle button").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#controlToggle button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     state.control = btn.dataset.value;
+    updateReflectionPrompt();
   });
 });
+
+
+const checkinModal = document.getElementById("checkinModal");
+
+function resetCheckinForm() {
+  state.checkinMood = null;
+  state.checkinEnergy = null;
+  document.querySelectorAll("#checkinMoodChoices button").forEach(btn => btn.classList.remove("active"));
+  document.querySelectorAll("#checkinEnergyChoices button").forEach(btn => btn.classList.remove("active"));
+  document.querySelectorAll("#checkinContextChips input").forEach(input => input.checked = false);
+  document.getElementById("checkinSecondaryMood").value = "";
+  document.getElementById("checkinMoodIntensity").value = 5;
+  document.getElementById("checkinMoodIntensityValue").textContent = "5";
+  document.getElementById("checkinThoughts").value = 5;
+  document.getElementById("checkinThoughtsValue").textContent = "5";
+  document.getElementById("checkinNote").value = "";
+}
+
+function openCheckinModal() {
+  resetCheckinForm();
+  renderRecentCheckins();
+  checkinModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+}
+
+function closeCheckinModal() {
+  checkinModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+document.getElementById("openCheckinBtn").addEventListener("click", openCheckinModal);
+document.getElementById("closeCheckinBtn").addEventListener("click", closeCheckinModal);
+checkinModal.addEventListener("click", event => {
+  if (event.target === checkinModal) closeCheckinModal();
+});
+
+document.querySelectorAll("#checkinMoodChoices button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.checkinMood = btn.dataset.mood;
+    document.querySelectorAll("#checkinMoodChoices button").forEach(item => item.classList.toggle("active", item === btn));
+  });
+});
+
+document.querySelectorAll("#checkinEnergyChoices button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.checkinEnergy = Number(btn.dataset.energy);
+    document.querySelectorAll("#checkinEnergyChoices button").forEach(item => item.classList.toggle("active", item === btn));
+  });
+});
+
+document.getElementById("checkinMoodIntensity").addEventListener("input", e => {
+  document.getElementById("checkinMoodIntensityValue").textContent = e.target.value;
+});
+
+document.getElementById("checkinThoughts").addEventListener("input", e => {
+  document.getElementById("checkinThoughtsValue").textContent = e.target.value;
+});
+
+document.getElementById("checkinForm").addEventListener("submit", e => {
+  e.preventDefault();
+
+  if (!state.checkinMood) {
+    showToast("Pilih mood yang paling terasa.");
+    return;
+  }
+
+  if (!state.checkinEnergy) {
+    showToast("Pilih kondisi energimu.");
+    return;
+  }
+
+  const now = new Date();
+  const date = todayLocal();
+  const time = now.toTimeString().slice(0, 5);
+  const contexts = [...document.querySelectorAll("#checkinContextChips input:checked")].map(input => input.value);
+
+  const secondaryMoodRaw = document.getElementById("checkinSecondaryMood").value;
+  const secondaryMood = secondaryMoodRaw && secondaryMoodRaw !== state.checkinMood ? secondaryMoodRaw : "";
+
+  state.checkins.push({
+    id: uid(),
+    date,
+    time,
+    mood: state.checkinMood,
+    secondaryMood,
+    moodIntensity: Number(document.getElementById("checkinMoodIntensity").value),
+    energy: state.checkinEnergy,
+    thoughts: Number(document.getElementById("checkinThoughts").value),
+    contexts,
+    note: document.getElementById("checkinNote").value.trim(),
+    createdAt: Date.now()
+  });
+
+  save(KEYS.checkins, state.checkins);
+  renderAll();
+  closeCheckinModal();
+  showToast("Check-in disimpan.");
+});
+
+function renderRecentCheckins() {
+  const root = document.getElementById("recentCheckins");
+  const items = [...state.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0)).slice(0, 3);
+
+  if (!items.length) {
+    root.innerHTML = `<div class="checkin-recent-empty">Belum ada check-in.</div>`;
+    return;
+  }
+
+  root.innerHTML = items.map(item => `
+    <div class="checkin-recent-item">
+      <span class="checkin-recent-mood">${moodIcon(item.mood)}</span>
+      <span class="checkin-recent-copy">
+        <strong>${escapeHtml(item.mood)}${item.secondaryMood ? ` + ${escapeHtml(item.secondaryMood)}` : ""}</strong>
+        <small>${formatDateTimeFromStamp(item.createdAt)} · energi ${escapeHtml(energyLabel(item.energy))} · pikiran ${item.thoughts}/10</small>
+      </span>
+      <button type="button" data-delete-checkin="${item.id}">Hapus</button>
+    </div>
+  `).join("");
+
+  root.querySelectorAll("[data-delete-checkin]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.checkins = state.checkins.filter(item => item.id !== btn.dataset.deleteCheckin);
+      save(KEYS.checkins, state.checkins);
+      renderRecentCheckins();
+      renderAll();
+      showToast("Check-in dihapus.");
+    });
+  });
+}
 
 document.getElementById("triggerForm").addEventListener("submit", e => {
   e.preventDefault();
@@ -1030,6 +1221,7 @@ document.getElementById("triggerForm").addEventListener("submit", e => {
     overthinking: state.overthinking,
     overthinkingIntensity: state.overthinking ? Number(document.getElementById("overthinkingIntensity").value) : 0,
     control: state.control,
+    reflection: document.getElementById("triggerReflection").value.trim(),
     createdAt: Date.now()
   };
 
@@ -1049,6 +1241,8 @@ document.getElementById("triggerForm").addEventListener("submit", e => {
   document.querySelectorAll("#triggerChips input").forEach(i => i.checked = false);
   document.getElementById("triggerDate").value = todayLocal();
   document.getElementById("triggerTime").value = timeLocal();
+  document.getElementById("triggerReflection").value = "";
+  updateReflectionPrompt();
 
   renderAll();
   showToast("Trigger disimpan.");
@@ -1132,6 +1326,57 @@ function truncateText(text, max = 42) {
   return clean.length > max ? clean.slice(0, max - 1) + "…" : clean;
 }
 
+function energyLabel(value) {
+  const labels = {
+    1: "Sangat rendah",
+    2: "Rendah",
+    3: "Sedang",
+    4: "Baik",
+    5: "Tinggi"
+  };
+  return labels[Number(value)] || "-";
+}
+
+function latestCheckin() {
+  return [...state.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0] || null;
+}
+
+function checkinDate(entry) {
+  if (entry?.date) return entry.date;
+  if (entry?.createdAt) {
+    const d = new Date(entry.createdAt);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  }
+  return "";
+}
+
+function checkinTime(entry) {
+  if (entry?.time) return entry.time;
+  if (!entry?.createdAt) return "";
+  return new Date(entry.createdAt).toTimeString().slice(0, 5);
+}
+
+
+document.querySelectorAll("#journalPrompts [data-prompt]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const textarea = document.getElementById("journalText");
+    const prompt = btn.dataset.prompt;
+    const prefix = `${prompt}\n\n`;
+    if (!textarea.value.trim()) {
+      textarea.value = prefix;
+    } else if (!textarea.value.includes(prompt)) {
+      textarea.value += `\n\n${prefix}`;
+    }
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  });
+});
+
+document.getElementById("journalSearch").addEventListener("input", e => {
+  renderJournalHistory(e.target.value);
+});
+
 document.getElementById("journalForm").addEventListener("submit", e => {
   e.preventDefault();
 
@@ -1153,43 +1398,69 @@ document.getElementById("journalForm").addEventListener("submit", e => {
 function renderHome() {
   const triggers = [...state.triggers].sort(byDateTimeDesc);
   const sleeps = [...state.sleep].sort(byDateTimeDesc);
-  const journals = [...state.journals].sort(byDateTimeDesc);
+  const checkins = [...state.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
+  const recentCheckin = checkins[0];
   const latestTrigger = triggers[0];
   const latestOverthinking = triggers.find(x => x.overthinking);
   const latestSleep = sleeps[0];
 
   const hoursNow = new Date().getHours();
-  const greet = hoursNow < 11 ? "Halo, selamat pagi ☀️" : hoursNow < 16 ? "Halo, semoga harimu lembut 🌿" : hoursNow < 20 ? "Halo, semoga sorenya tenang ✨" : "Halo, semoga malammu hangat 🌙";
+  const greet =
+    hoursNow < 11 ? "Halo, selamat pagi ☀️" :
+    hoursNow < 16 ? "Halo, semoga harimu lembut 🌿" :
+    hoursNow < 20 ? "Halo, semoga sorenya tenang ✨" :
+    "Halo, semoga malammu hangat 🌙";
+
   document.getElementById("homeGreeting").textContent = greet;
   document.getElementById("homeDate").textContent = formatDateLong(todayLocal());
 
-  // Mood
-  document.getElementById("homeMoodIcon").textContent = latestTrigger ? moodIcon(latestTrigger.mood) : "🙂";
+  const moodSource = recentCheckin || latestTrigger;
+  document.getElementById("homeMoodIcon").textContent = moodSource ? moodIcon(moodSource.mood) : "🙂";
   document.getElementById("homeLatestMood").textContent =
-    latestTrigger ? latestTrigger.mood : "-";
+    moodSource ? `${moodSource.mood}${recentCheckin?.secondaryMood ? ` + ${recentCheckin.secondaryMood}` : ""}` : "-";
   document.getElementById("homeLatestMoodMeta").textContent =
-    latestTrigger ? `${latestTrigger.moodIntensity}/10 · ${formatActivityDate(latestTrigger.date, latestTrigger.time)}` : "Belum ada catatan";
+    recentCheckin
+      ? `${recentCheckin.moodIntensity}/10 · ${formatActivityDate(checkinDate(recentCheckin), checkinTime(recentCheckin))}`
+      : latestTrigger
+        ? `${latestTrigger.moodIntensity}/10 · dari Trigger`
+        : "Belum check-in";
 
-  // Energy
-  const energy = energySummary(latestSleep);
-  document.getElementById("homeLatestEnergy").textContent = energy.label;
-  document.getElementById("homeLatestEnergyMeta").textContent = energy.meta;
+  document.getElementById("homeLatestEnergy").textContent =
+    recentCheckin ? energyLabel(recentCheckin.energy) : "-";
+  document.getElementById("homeLatestEnergyMeta").textContent =
+    recentCheckin ? formatActivityDate(checkinDate(recentCheckin), checkinTime(recentCheckin)) : "Belum check-in";
 
-  // Thoughts
-  const thought = latestOverthinking ? thoughtSummary(Number(latestOverthinking.overthinkingIntensity || 0)) : { label: "-", meta: "Belum tercatat", icon: "☁️" };
+  const thoughtScore = recentCheckin
+    ? Number(recentCheckin.thoughts)
+    : latestOverthinking
+      ? Number(latestOverthinking.overthinkingIntensity)
+      : NaN;
+  const thought = thoughtSummary(thoughtScore);
   document.getElementById("homeThoughtIcon").textContent = thought.icon;
   document.getElementById("homeLatestThought").textContent = thought.label;
   document.getElementById("homeLatestThoughtMeta").textContent =
-    latestOverthinking ? `${thought.meta} · ${formatActivityDate(latestOverthinking.date, latestOverthinking.time)}` : "Belum tercatat";
+    recentCheckin
+      ? `${thought.meta} · dari check-in`
+      : latestOverthinking
+        ? `${thought.meta} · dari Trigger`
+        : "Belum check-in";
 
-  // Sleep
   document.getElementById("homeLatestSleep").textContent =
     latestSleep ? formatHoursFancy(latestSleep.hours) : "-";
   document.getElementById("homeLatestSleepMeta").textContent =
     latestSleep ? `kualitas ${latestSleep.quality}/10 · ${formatDate(latestSleep.date)}` : "Belum ada data";
 
   const activities = [
+    ...state.checkins.map(item => ({
+      type: "checkin",
+      label: "Check-in",
+      detail: `${item.mood}${item.secondaryMood ? ` + ${item.secondaryMood}` : ""} · energi ${energyLabel(item.energy)} · pikiran ${item.thoughts}/10`,
+      date: checkinDate(item),
+      time: checkinTime(item),
+      timeLabel: checkinTime(item),
+      timestamp: Number(item.createdAt || 0)
+    })),
     ...state.journals.map(item => ({
       type: "journal",
       label: "Journal",
@@ -1220,13 +1491,13 @@ function renderHome() {
   ].sort((a, b) => b.timestamp - a.timestamp);
 
   const root = document.getElementById("recentActivity");
-
   if (!activities.length) {
     root.innerHTML = `<div class="empty-state">Belum ada aktivitas.</div>`;
     return;
   }
 
   const symbols = {
+    checkin: "○",
     trigger: "✦",
     sleep: "◔",
     journal: "▤"
@@ -1265,6 +1536,7 @@ function renderTriggerHistory() {
         <button class="delete-btn" data-delete-trigger="${item.id}">Hapus</button>
       </div>
       <div class="history-body">${escapeHtml(item.event)}</div>
+      ${item.reflection ? `<div class="history-reflection"><strong>Coba lihat dari sisi lain</strong><span>${escapeHtml(item.reflection)}</span></div>` : ""}
       <div class="badge-row">
         ${(item.triggers || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join("")}
         ${item.overthinking ? `<span class="badge">Overthinking ${item.overthinkingIntensity}/10</span>` : ""}
@@ -1314,16 +1586,21 @@ function renderSleepHistory() {
   });
 }
 
-function renderJournalHistory() {
+function renderJournalHistory(query = "") {
   const root = document.getElementById("journalHistory");
-  const items = [...state.journals].sort(byDateTimeDesc);
+  const term = String(query || "").trim().toLowerCase();
+  let items = [...state.journals].sort(byDateTimeDesc);
+
+  if (term) {
+    items = items.filter(item => String(item.text || "").toLowerCase().includes(term));
+  }
 
   if (!items.length) {
-    root.innerHTML = `<div class="empty-state">Belum ada journal.</div>`;
+    root.innerHTML = `<div class="empty-state">${term ? "Tidak ada journal yang cocok." : "Belum ada journal."}</div>`;
     return;
   }
 
-  root.innerHTML = items.slice(0, 12).map(item => `
+  root.innerHTML = items.slice(0, 30).map(item => `
     <article class="history-item">
       <div class="history-top">
         <div>
@@ -1345,6 +1622,90 @@ function renderJournalHistory() {
   });
 }
 
+function recordsForDate(date) {
+  return {
+    checkins: state.checkins.filter(item => checkinDate(item) === date),
+    triggers: state.triggers.filter(item => item.date === date),
+    sleep: state.sleep.filter(item => item.date === date),
+    journals: state.journals.filter(item => item.date === date)
+  };
+}
+
+function renderJournalCalendar() {
+  const root = document.getElementById("journalCalendar");
+  const label = document.getElementById("calendarMonthLabel");
+  if (!root || !label) return;
+
+  const year = state.calendarDate.getFullYear();
+  const month = state.calendarDate.getMonth();
+  label.textContent = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(year, month, 1));
+
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const mondayIndex = (first.getDay() + 6) % 7;
+  const cells = [];
+
+  for (let i = 0; i < mondayIndex; i++) {
+    cells.push(`<div class="calendar-cell empty"></div>`);
+  }
+
+  for (let day = 1; day <= last.getDate(); day++) {
+    const d = new Date(year, month, day);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    const date = d.toISOString().slice(0, 10);
+    const records = recordsForDate(date);
+    const hasData = records.checkins.length || records.triggers.length || records.sleep.length || records.journals.length;
+    const isToday = date === todayLocal();
+
+    cells.push(`
+      <button type="button" class="calendar-cell${hasData ? " has-data" : ""}${isToday ? " today" : ""}" data-calendar-date="${date}">
+        <span>${day}</span>
+        ${hasData ? `<i></i>` : ""}
+      </button>
+    `);
+  }
+
+  root.innerHTML = cells.join("");
+
+  root.querySelectorAll("[data-calendar-date]").forEach(btn => {
+    btn.addEventListener("click", () => renderCalendarDay(btn.dataset.calendarDate));
+  });
+}
+
+function renderCalendarDay(date) {
+  const root = document.getElementById("calendarDaySummary");
+  const records = recordsForDate(date);
+  root.classList.remove("hidden");
+
+  const parts = [];
+  if (records.checkins.length) {
+    const latest = [...records.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
+    parts.push(`<div><strong>Check-in</strong><span>${moodIcon(latest.mood)} ${escapeHtml(latest.mood)} · energi ${escapeHtml(energyLabel(latest.energy))} · pikiran ${latest.thoughts}/10</span></div>`);
+  }
+  if (records.triggers.length) {
+    parts.push(`<div><strong>Trigger</strong><span>${records.triggers.length} catatan</span></div>`);
+  }
+  if (records.sleep.length) {
+    const latestSleep = records.sleep[records.sleep.length - 1];
+    parts.push(`<div><strong>Tidur</strong><span>${formatHoursFancy(latestSleep.hours)} · kualitas ${latestSleep.quality}/10</span></div>`);
+  }
+  if (records.journals.length) {
+    parts.push(`<div><strong>Journal</strong><span>${records.journals.length} catatan</span></div>`);
+  }
+
+  root.innerHTML = `
+    <div class="calendar-day-head">
+      <strong>${formatDate(date)}</strong>
+      <button type="button" id="closeCalendarSummary">×</button>
+    </div>
+    <div class="calendar-day-items">
+      ${parts.length ? parts.join("") : `<span>Belum ada catatan pada tanggal ini.</span>`}
+    </div>
+  `;
+
+  document.getElementById("closeCalendarSummary").addEventListener("click", () => root.classList.add("hidden"));
+}
+
 function average(values) {
   const valid = values.filter(v => Number.isFinite(Number(v))).map(Number);
   return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
@@ -1364,20 +1725,19 @@ function countsBy(values) {
 }
 
 function renderInsights() {
+  const allCheckins = [...state.checkins].sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
   const allTriggers = [...state.triggers].sort((a, b) =>
     `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`)
   );
   const allSleep = [...state.sleep].sort((a, b) =>
     `${a.date} ${a.start || ""}`.localeCompare(`${b.date} ${b.start || ""}`)
   );
-  const allJournals = [...state.journals].sort((a, b) =>
-    `${a.date}`.localeCompare(`${b.date}`)
-  );
+  const allJournals = [...state.journals].sort((a, b) => `${a.date}`.localeCompare(`${b.date}`));
 
+  const checkins = filterByInsightPeriod(allCheckins.map(item => ({ ...item, date: checkinDate(item) })));
   const triggers = filterByInsightPeriod(allTriggers);
   const sleeps = filterByInsightPeriod(allSleep);
   const journals = filterByInsightPeriod(allJournals);
-  const over = triggers.filter(x => x.overthinking);
 
   const periodLabel =
     state.insightPeriod === "all"
@@ -1386,28 +1746,51 @@ function renderInsights() {
 
   document.getElementById("insightPeriodNote").textContent = periodLabel;
 
-  const moodAvg = average(triggers.map(x => x.moodIntensity));
+  const moodAvg = average(checkins.map(x => x.moodIntensity));
+  const thoughtAvg = average(checkins.map(x => x.thoughts));
   const sleepAvg = average(sleeps.map(x => x.hours));
-  const overRate = triggers.length
-    ? Math.round((over.length / triggers.length) * 100)
-    : 0;
-  const activeDays = uniqueActiveDates(triggers, sleeps, journals);
+  const activeDays = uniqueActiveDates(
+    [...triggers, ...checkins.map(item => ({ date: item.date }))],
+    sleeps,
+    journals
+  );
 
   document.getElementById("insightMoodIntensity").textContent =
-    triggers.length ? `${moodAvg.toFixed(1)}/10` : "-";
-
-  document.getElementById("insightOverthinkingRate").textContent =
-    triggers.length ? `${overRate}%` : "-";
-
+    checkins.length ? `${moodAvg.toFixed(1)}/10` : "-";
+  document.getElementById("insightThoughtAverage").textContent =
+    checkins.length ? `${thoughtAvg.toFixed(1)}/10` : "-";
   document.getElementById("insightSleepAverage").textContent =
     sleeps.length ? `${sleepAvg.toFixed(1)}j` : "-";
-
   document.getElementById("insightActiveDays").textContent =
     activeDays ? String(activeDays) : "-";
 
+  renderInsightMaturity(checkins);
   renderTriggerRanking(triggers);
-  renderRelationshipInsights(triggers, sleeps);
-  renderCharts(triggers, sleeps);
+  renderRelationshipInsights(checkins, sleeps);
+  renderCharts(checkins, sleeps);
+}
+
+function renderInsightMaturity(checkins) {
+  const root = document.getElementById("insightMaturity");
+  const title = root.querySelector("strong");
+  const copy = root.querySelector("span:last-child");
+  const count = checkins.length;
+
+  root.classList.remove("maturity-start", "maturity-early", "maturity-ready");
+
+  if (count < 5) {
+    root.classList.add("maturity-start");
+    title.textContent = "Catatan baru mulai terkumpul";
+    copy.textContent = `${count} check-in pada periode ini. Tambahkan beberapa lagi sebelum membandingkan pola.`;
+  } else if (count < 10) {
+    root.classList.add("maturity-early");
+    title.textContent = "Pola awal mulai terlihat";
+    copy.textContent = `${count} check-in pada periode ini. Anggap hubungan yang muncul sebagai petunjuk awal, bukan kesimpulan.`;
+  } else {
+    root.classList.add("maturity-ready");
+    title.textContent = "Cukup data untuk perbandingan sederhana";
+    copy.textContent = `${count} check-in pada periode ini. Tetap ingat bahwa hubungan dalam catatan tidak membuktikan sebab-akibat.`;
+  }
 }
 
 function renderTriggerRanking(triggers) {
@@ -1439,11 +1822,20 @@ function renderTriggerRanking(triggers) {
   }).join("");
 }
 
-function renderRelationshipInsights(triggers, sleeps) {
+function renderRelationshipInsights(checkins, sleeps) {
   const root = document.getElementById("relationshipInsights");
-  const relationships = [];
 
-  // Relationship 1: sleep duration and overthinking on matching dates.
+  if (checkins.length < 5) {
+    root.innerHTML = `
+      <div class="relationship-empty">
+        Catatanmu belum cukup banyak untuk melihat hubungan antar-data.
+        Mulai dari check-in rutin dan data tidur. Tidak perlu setiap hari.
+      </div>
+    `;
+    return;
+  }
+
+  const relationships = [];
   const sleepByDate = {};
   sleeps.forEach(item => {
     if (!item.date) return;
@@ -1451,66 +1843,76 @@ function renderRelationshipInsights(triggers, sleeps) {
     sleepByDate[item.date].push(Number(item.hours));
   });
 
-  const sleepAverageByDate = {};
-  Object.entries(sleepByDate).forEach(([date, hours]) => {
-    sleepAverageByDate[date] = average(hours);
+  const sleepAvgDate = {};
+  Object.entries(sleepByDate).forEach(([date, values]) => {
+    sleepAvgDate[date] = average(values);
   });
 
-  const matched = triggers
-    .filter(item => sleepAverageByDate[item.date] !== undefined)
-    .map(item => ({
-      sleepHours: sleepAverageByDate[item.date],
-      overScore: item.overthinking ? Number(item.overthinkingIntensity || 0) : 0
+  const latestCheckinByDate = {};
+  checkins.forEach(item => {
+    const current = latestCheckinByDate[item.date];
+    if (!current || Number(item.createdAt || 0) > Number(current.createdAt || 0)) {
+      latestCheckinByDate[item.date] = item;
+    }
+  });
+
+  const paired = Object.entries(latestCheckinByDate)
+    .filter(([date]) => sleepAvgDate[date] !== undefined)
+    .map(([date, item]) => ({
+      date,
+      thoughts: Number(item.thoughts),
+      sleepHours: sleepAvgDate[date]
     }));
 
-  const lowSleep = matched.filter(x => x.sleepHours < 6);
-  const sufficientSleep = matched.filter(x => x.sleepHours >= 7);
+  const shortSleep = paired.filter(x => x.sleepHours < 6);
+  const longerSleep = paired.filter(x => x.sleepHours >= 7);
 
-  if (lowSleep.length >= 2 && sufficientSleep.length >= 2) {
-    const lowAvg = average(lowSleep.map(x => x.overScore));
-    const sufficientAvg = average(sufficientSleep.map(x => x.overScore));
-
+  if (shortSleep.length >= 3 && longerSleep.length >= 3) {
+    const shortAvg = average(shortSleep.map(x => x.thoughts));
+    const longerAvg = average(longerSleep.map(x => x.thoughts));
     relationships.push(`
       <div class="relationship-item">
-        <strong>Tidur dan overthinking</strong>
-        <p>Pada tanggal yang memiliki kedua jenis catatan, intensitas overthinking rata-rata <b>${lowAvg.toFixed(1)}/10</b> saat tidur kurang dari 6 jam dan <b>${sufficientAvg.toFixed(1)}/10</b> saat tidur 7 jam atau lebih.</p>
+        <strong>Tidur dan pikiran yang ramai</strong>
+        <p>Pada tanggal yang memiliki kedua catatan, pikiran rata-rata <b>${shortAvg.toFixed(1)}/10</b> saat tidur kurang dari 6 jam dan <b>${longerAvg.toFixed(1)}/10</b> saat tidur 7 jam atau lebih.</p>
+        <small>Ini menunjukkan pola dalam catatanmu, bukan bukti bahwa durasi tidur menyebabkan perbedaan tersebut.</small>
       </div>
     `);
   }
 
-  // Relationship 2: trigger category and overthinking intensity.
-  const byTrigger = {};
-  triggers.forEach(item => {
-    (item.triggers || []).forEach(category => {
-      if (!byTrigger[category]) byTrigger[category] = [];
-      byTrigger[category].push(item.overthinking ? Number(item.overthinkingIntensity || 0) : 0);
+  const contextCounts = {};
+  checkins.forEach(item => {
+    (item.contexts || []).forEach(context => {
+      contextCounts[context] = (contextCounts[context] || 0) + 1;
     });
   });
 
-  const eligibleTriggers = Object.entries(byTrigger)
-    .filter(([, values]) => values.length >= 2)
-    .map(([category, values]) => ({
-      category,
-      count: values.length,
-      average: average(values)
-    }))
-    .sort((a, b) => b.average - a.average);
+  const eligibleContexts = Object.entries(contextCounts)
+    .filter(([, count]) => count >= 3)
+    .sort((a, b) => b[1] - a[1]);
 
-  if (eligibleTriggers.length >= 2) {
-    const highest = eligibleTriggers[0];
-    relationships.push(`
-      <div class="relationship-item">
-        <strong>Trigger dan intensitas overthinking</strong>
-        <p>Di antara trigger yang tercatat minimal dua kali, <b>${escapeHtml(highest.category)}</b> memiliki rata-rata intensitas overthinking tertinggi, yaitu <b>${highest.average.toFixed(1)}/10</b> dari ${highest.count} catatan.</p>
-      </div>
-    `);
+  for (const [context] of eligibleContexts) {
+    const withContext = checkins.filter(item => (item.contexts || []).includes(context));
+    const withoutContext = checkins.filter(item => !(item.contexts || []).includes(context));
+
+    if (withContext.length >= 3 && withoutContext.length >= 3) {
+      const withAvg = average(withContext.map(item => item.thoughts));
+      const withoutAvg = average(withoutContext.map(item => item.thoughts));
+      relationships.push(`
+        <div class="relationship-item">
+          <strong>${escapeHtml(context)} dan kondisi pikiran</strong>
+          <p>Saat konteks ini dicatat, kondisi pikiran rata-rata <b>${withAvg.toFixed(1)}/10</b>. Pada check-in tanpa konteks ini, rata-ratanya <b>${withoutAvg.toFixed(1)}/10</b>.</p>
+          <small>Perbedaan ini bersifat deskriptif dan tidak membuktikan hubungan sebab-akibat.</small>
+        </div>
+      `);
+      break;
+    }
   }
 
   if (!relationships.length) {
     root.innerHTML = `
       <div class="relationship-empty">
-        Belum cukup data untuk membandingkan hubungan antar-catatan.
-        Tambahkan beberapa catatan Trigger dan Tidur pada tanggal yang sama agar pola lintas data dapat dibandingkan.
+        Pola dasar sudah mulai terkumpul, tetapi belum ada dua kelompok data yang cukup untuk dibandingkan.
+        Check-in dan tidur pada tanggal yang sama akan membantu.
       </div>
     `;
     return;
@@ -1526,162 +1928,113 @@ function destroyChart(name) {
   }
 }
 
-function renderCharts(triggers, sleeps) {
-  const hasChart = typeof Chart !== "undefined";
-  if (!hasChart) return;
+function renderCharts(checkins, sleeps) {
+  if (typeof Chart === "undefined") return;
 
+  const dark = currentTheme() === "dark";
   Chart.defaults.font.family = '"Nunito Sans", Arial, sans-serif';
-  Chart.defaults.color = "#7B7B72";
-  Chart.defaults.borderColor = "rgba(123, 123, 114, 0.16)";
+  Chart.defaults.color = dark ? "#C8C5BD" : "#7B7B72";
+  Chart.defaults.borderColor = dark ? "rgba(225,221,210,.12)" : "rgba(123,123,114,.16)";
 
-  // 1. Mood frequency
   destroyChart("moodFrequency");
-  const moodCounts = countsBy(triggers.map(x => x.mood).filter(Boolean));
+  const moodCounts = countsBy(checkins.map(x => x.mood).filter(Boolean));
   const moodEntries = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]);
   const moodEmpty = document.getElementById("moodFrequencyEmpty");
   moodEmpty.classList.toggle("hidden", moodEntries.length > 0);
 
   if (moodEntries.length) {
-    state.charts.moodFrequency = new Chart(
-      document.getElementById("moodFrequencyChart"),
-      {
-        type: "bar",
-        data: {
-          labels: moodEntries.map(x => x[0]),
-          datasets: [{
-            label: "Jumlah catatan",
-            data: moodEntries.map(x => x[1]),
-            backgroundColor: "rgba(92, 115, 95, 0.78)",
-            borderColor: "#5C735F",
-            borderWidth: 1,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: context => `${context.raw} catatan`
-              }
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              ticks: { precision: 0, stepSize: 1 }
-            },
-            y: { grid: { display: false } }
-          }
+    state.charts.moodFrequency = new Chart(document.getElementById("moodFrequencyChart"), {
+      type: "bar",
+      data: {
+        labels: moodEntries.map(x => x[0]),
+        datasets: [{
+          data: moodEntries.map(x => x[1]),
+          backgroundColor: "rgba(92,115,95,.78)",
+          borderColor: "#5C735F",
+          borderWidth: 1,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0, stepSize: 1 } },
+          y: { grid: { display: false } }
         }
       }
-    );
+    });
   }
 
-  // 2. Overthinking trend per trigger entry.
-  destroyChart("overthinkingTrend");
-  const overEmpty = document.getElementById("overthinkingTrendEmpty");
-  overEmpty.classList.toggle("hidden", triggers.length > 0);
+  destroyChart("thoughtTrend");
+  const thoughtEmpty = document.getElementById("thoughtTrendEmpty");
+  thoughtEmpty.classList.toggle("hidden", checkins.length > 0);
 
-  if (triggers.length) {
-    const recent = triggers.slice(-30);
-    state.charts.overthinkingTrend = new Chart(
-      document.getElementById("overthinkingTrendChart"),
-      {
-        type: "line",
-        data: {
-          labels: recent.map(x => formatDateShort(x.date)),
-          datasets: [{
-            label: "Intensitas overthinking",
-            data: recent.map(x => x.overthinking ? Number(x.overthinkingIntensity || 0) : 0),
-            borderColor: "#EFA0BD",
-            backgroundColor: "rgba(239, 160, 189, 0.16)",
-            pointBackgroundColor: "#EFA0BD",
-            pointBorderColor: "#FFFDF8",
-            borderWidth: 2,
-            tension: 0.32,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: context =>
-                  context.raw === 0
-                    ? "Tidak tercatat overthinking"
-                    : `Intensitas ${context.raw}/10`
-              }
-            }
-          },
-          scales: {
-            y: {
-              min: 0,
-              max: 10,
-              ticks: { stepSize: 2 }
-            },
-            x: { grid: { display: false } }
-          }
+  if (checkins.length) {
+    const recent = checkins.slice(-30);
+    state.charts.thoughtTrend = new Chart(document.getElementById("thoughtTrendChart"), {
+      type: "line",
+      data: {
+        labels: recent.map(x => formatDateShort(x.date)),
+        datasets: [{
+          data: recent.map(x => Number(x.thoughts || 0)),
+          borderColor: "#EFA0BD",
+          backgroundColor: "rgba(239,160,189,.14)",
+          pointBackgroundColor: "#EFA0BD",
+          pointBorderColor: dark ? "#30342F" : "#FFFDF8",
+          borderWidth: 2,
+          tension: .32,
+          pointRadius: 3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 1, max: 10, ticks: { stepSize: 1 } },
+          x: { grid: { display: false } }
         }
       }
-    );
+    });
   }
 
-  // 3. Sleep duration
   destroyChart("sleepDuration");
   const sleepEmpty = document.getElementById("sleepDurationEmpty");
   sleepEmpty.classList.toggle("hidden", sleeps.length > 0);
 
   if (sleeps.length) {
     const recentSleep = sleeps.slice(-30);
-    state.charts.sleepDuration = new Chart(
-      document.getElementById("sleepDurationChart"),
-      {
-        type: "bar",
-        data: {
-          labels: recentSleep.map(x => formatDateShort(x.date)),
-          datasets: [{
-            label: "Durasi tidur",
-            data: recentSleep.map(x => Number(x.hours || 0)),
-            backgroundColor: "rgba(92, 115, 95, 0.58)",
-            borderColor: "#5C735F",
-            borderWidth: 1,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: context => `${context.raw} jam`
-              }
-            }
+    state.charts.sleepDuration = new Chart(document.getElementById("sleepDurationChart"), {
+      type: "bar",
+      data: {
+        labels: recentSleep.map(x => formatDateShort(x.date)),
+        datasets: [{
+          data: recentSleep.map(x => Number(x.hours || 0)),
+          backgroundColor: "rgba(92,115,95,.58)",
+          borderColor: "#5C735F",
+          borderWidth: 1,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 10,
+            ticks: { callback: value => `${value}j` }
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              suggestedMax: 10,
-              ticks: {
-                callback: value => `${value}j`
-              }
-            },
-            x: { grid: { display: false } }
-          }
+          x: { grid: { display: false } }
         }
       }
-    );
+    });
   }
 }
 
@@ -1694,11 +2047,28 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#039;");
 }
 
+
+document.getElementById("calendarPrev").addEventListener("click", () => {
+  state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() - 1, 1);
+  renderJournalCalendar();
+});
+
+document.getElementById("calendarNext").addEventListener("click", () => {
+  state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + 1, 1);
+  renderJournalCalendar();
+});
+
 function renderAll() {
   renderHome();
   renderTriggerHistory();
   renderSleepHistory();
-  renderJournalHistory();
+  renderJournalHistory(document.getElementById("journalSearch")?.value || "");
+  renderJournalCalendar();
+  renderDataMenu();
+
+  if (!checkinModal.classList.contains("hidden")) {
+    renderRecentCheckins();
+  }
 
   if (document.getElementById("page-insight").classList.contains("active")) {
     renderInsights();
@@ -1719,8 +2089,54 @@ document.getElementById("refreshBtn").addEventListener("click", () => {
   state.triggers = load(KEYS.triggers);
   state.sleep = load(KEYS.sleep);
   state.journals = load(KEYS.journals);
+  state.checkins = load(KEYS.checkins);
   renderAll();
   showToast("Data dimuat ulang.");
+});
+
+
+function totalRecords() {
+  return state.checkins.length + state.triggers.length + state.sleep.length + state.journals.length;
+}
+
+function renderDataMenu() {
+  const stats = document.getElementById("dataMenuStats");
+  const lastBackupText = document.getElementById("lastBackupText");
+  const reminder = document.getElementById("backupReminder");
+
+  if (stats) {
+    stats.innerHTML = `
+      <span><b>${state.checkins.length}</b> check-in</span>
+      <span><b>${state.triggers.length}</b> trigger</span>
+      <span><b>${state.sleep.length}</b> tidur</span>
+      <span><b>${state.journals.length}</b> journal</span>
+    `;
+  }
+
+  const lastBackup = loadText(KEYS.lastBackupAt, "");
+  if (lastBackupText) {
+    lastBackupText.textContent = lastBackup
+      ? `Backup terakhir: ${new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(lastBackup))}`
+      : "Backup terakhir: belum pernah";
+  }
+
+  if (reminder) {
+    const daysSinceBackup = lastBackup ? (Date.now() - new Date(lastBackup).getTime()) / 86400000 : Infinity;
+    const shouldRemind = totalRecords() >= 30 && (!lastBackup || daysSinceBackup >= 30);
+    reminder.classList.toggle("hidden", !shouldRemind);
+  }
+
+  applyTheme(currentTheme());
+}
+
+document.getElementById("themeBtn").addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  saveText(KEYS.theme, next);
+  applyTheme(next);
+  renderDataMenu();
+  if (document.getElementById("page-insight").classList.contains("active")) {
+    renderInsights();
+  }
 });
 
 const dataMenu = document.getElementById("dataMenu");
@@ -1735,20 +2151,28 @@ document.addEventListener("click", e => {
 
 document.getElementById("exportBtn").addEventListener("click", () => {
   const data = {
-    version: 1,
+    version: 2,
+    app: "Teman Harian",
     exportedAt: new Date().toISOString(),
+    checkins: state.checkins,
     triggers: state.triggers,
     sleep: state.sleep,
-    journals: state.journals
+    journals: state.journals,
+    settings: {
+      theme: currentTheme()
+    }
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `mood-tracker-backup-${todayLocal()}.json`;
+  a.download = `teman-harian-backup-${todayLocal()}.json`;
   a.click();
   URL.revokeObjectURL(url);
+
+  saveText(KEYS.lastBackupAt, new Date().toISOString());
+  renderDataMenu();
   dataMenu.classList.add("hidden");
   showToast("Backup dibuat.");
 });
@@ -1759,16 +2183,26 @@ document.getElementById("importInput").addEventListener("change", async e => {
 
   try {
     const data = JSON.parse(await file.text());
+
     if (!Array.isArray(data.triggers) || !Array.isArray(data.sleep) || !Array.isArray(data.journals)) {
       throw new Error("Format tidak valid");
     }
 
+    state.checkins = Array.isArray(data.checkins) ? data.checkins : [];
     state.triggers = data.triggers;
     state.sleep = data.sleep;
     state.journals = data.journals;
+
+    save(KEYS.checkins, state.checkins);
     save(KEYS.triggers, state.triggers);
     save(KEYS.sleep, state.sleep);
     save(KEYS.journals, state.journals);
+
+    if (data.settings?.theme === "dark" || data.settings?.theme === "light") {
+      saveText(KEYS.theme, data.settings.theme);
+      applyTheme(data.settings.theme);
+    }
+
     renderAll();
     showToast("Backup berhasil diimpor.");
   } catch {
@@ -1780,10 +2214,11 @@ document.getElementById("importInput").addEventListener("change", async e => {
 });
 
 document.getElementById("resetBtn").addEventListener("click", () => {
-  const ok = confirm("Hapus seluruh data Mood Tracker di browser ini?");
+  const ok = confirm("Hapus seluruh data Teman Harian di browser ini?");
   if (!ok) return;
 
-  Object.values(KEYS).forEach(key => localStorage.removeItem(key));
+  [KEYS.checkins, KEYS.triggers, KEYS.sleep, KEYS.journals, KEYS.lastBackupAt].forEach(key => localStorage.removeItem(key));
+  state.checkins = [];
   state.triggers = [];
   state.sleep = [];
   state.journals = [];
@@ -1792,5 +2227,14 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   showToast("Semua data dihapus.");
 });
 
+
+applyTheme(loadText(KEYS.theme, "light"));
+updateReflectionPrompt();
 setDefaults();
 renderAll();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js?v=9.0").catch(() => {});
+  });
+}

@@ -4,20 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#F4EFE5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Teman Harian" />
+  <link rel="manifest" href="manifest.webmanifest?v=9.0" />
   <title>Teman Harian</title>
-  <link rel="icon" type="image/svg+xml" href="logo.svg?v=8.0" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg?v=9.0" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="stylesheet" href="style.css?v=8.0" />
+  <link rel="stylesheet" href="style.css?v=9.0" />
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Navigasi utama">
       <div class="brand">
-        <img class="brand-logo" src="logo.svg?v=8.0" alt="" aria-hidden="true" />
+        <img class="brand-logo" src="logo.svg?v=9.0" alt="" aria-hidden="true" />
         <div class="brand-copy">
           <strong>Teman Harian</strong>
           <span>Ruang hangat untuk melihat bagaimana harimu berjalan.</span>
@@ -40,7 +44,7 @@
     <main class="main">
       <header class="topbar">
         <div class="mobile-brand">
-          <img class="brand-logo" src="logo.svg?v=8.0" alt="" aria-hidden="true" />
+          <img class="brand-logo" src="logo.svg?v=9.0" alt="" aria-hidden="true" />
           <div class="brand-copy">
             <strong>Teman Harian</strong>
             <span>Ruang hangat untuk melihat bagaimana harimu berjalan.</span>
@@ -63,7 +67,10 @@
             <h1 id="homeGreeting">Halo, kamu ✨</h1>
             <p class="home-hero-text">Senang kamu ada di sini. Yuk, lihat bagaimana harimu sejauh ini.</p>
           </div>
-          <div class="home-date-chip" id="homeDate">-</div>
+          <div class="home-hero-side">
+            <div class="home-date-chip" id="homeDate">-</div>
+            <button id="openCheckinBtn" class="checkin-open-btn" type="button">+ Check-in hari ini</button>
+          </div>
         </div>
 
         <section class="section panel home-status-panel">
@@ -90,7 +97,7 @@
                 <div class="status-badge status-badge-energy">▮▮▮</div>
               </div>
               <strong id="homeLatestEnergy">-</strong>
-              <span id="homeLatestEnergyMeta" class="status-meta">Belum ada data tidur</span>
+              <span id="homeLatestEnergyMeta" class="status-meta">Belum check-in</span>
             </article>
 
             <article class="status-item status-item-compact">
@@ -245,8 +252,29 @@
             </div>
           </div>
 
+          <div class="form-section reflection-form-section">
+            <div class="reflection-prompt-box">
+              <p class="eyebrow">Coba lihat dari sisi lain</p>
+              <h2 id="reflectionPrompt">Langkah kecil apa yang masih bisa kamu lakukan hari ini?</h2>
+              <label>
+                <span>Kalau ingin, tulis sedikit di sini</span>
+                <textarea id="triggerReflection" rows="3" placeholder="Opsional. Tidak harus dijawab sekarang."></textarea>
+              </label>
+            </div>
+          </div>
+
           <button class="primary-btn" type="submit">Simpan Trigger</button>
         </form>
+
+        <button type="button" class="section panel knowledge-inline-card" data-knowledge-link-category="mind">
+          <span class="knowledge-inline-icon">🧠</span>
+          <span class="knowledge-inline-copy">
+            <small>Cari Tahu Tentang Dirimu</small>
+            <strong>Mau memahami pikiran yang terasa ramai?</strong>
+            <span>Baca tentang worry, rumination, stres, dan tidur.</span>
+          </span>
+          <b>→</b>
+        </button>
 
         <section class="section">
           <div class="section-title-row">
@@ -304,6 +332,16 @@
           <button class="primary-btn" type="submit">Simpan Data Tidur</button>
         </form>
 
+        <button type="button" class="section panel knowledge-inline-card" data-knowledge-link-category="sleep">
+          <span class="knowledge-inline-icon">🌙</span>
+          <span class="knowledge-inline-copy">
+            <small>Cari Tahu Tentang Dirimu</small>
+            <strong>Mau memahami tidur lebih jauh?</strong>
+            <span>Durasi, jadwal, cahaya malam, dan kebiasaan sebelum tidur.</span>
+          </span>
+          <b>→</b>
+        </button>
+
         <section class="section">
           <div class="section-title-row">
             <div>
@@ -333,6 +371,19 @@
           </div>
 
           <div class="form-section">
+            <div class="label-block">
+              <span>Mau mulai dari mana?</span>
+              <small>Pilih salah satu kalau halaman kosong terasa sulit untuk dimulai.</small>
+            </div>
+            <div class="journal-prompt-row" id="journalPrompts">
+              <button type="button" data-prompt="Apa yang paling memenuhi pikiranmu hari ini?">Pikiran hari ini</button>
+              <button type="button" data-prompt="Apa bagian dari situasi hari ini yang masih berada dalam kendalimu?">Yang bisa dikendalikan</button>
+              <button type="button" data-prompt="Apa yang membuat hari ini terasa berbeda?">Tentang hari ini</button>
+              <button type="button" data-prompt="Ada sesuatu yang ingin kamu lepaskan dari pikiran?">Yang ingin dilepaskan</button>
+            </div>
+          </div>
+
+          <div class="form-section">
             <label>
               <span>Isi journal</span>
               <textarea id="journalText" rows="10" placeholder="Tuliskan apa yang sedang ada di pikiranmu..." required></textarea>
@@ -342,12 +393,35 @@
           <button class="primary-btn" type="submit">Simpan Journal</button>
         </form>
 
-        <section class="section">
+        <section class="section panel journal-calendar-panel">
           <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Kalender</p>
+              <h2>Jejak Harian</h2>
+            </div>
+            <div class="calendar-nav">
+              <button id="calendarPrev" type="button" aria-label="Bulan sebelumnya">←</button>
+              <strong id="calendarMonthLabel">-</strong>
+              <button id="calendarNext" type="button" aria-label="Bulan berikutnya">→</button>
+            </div>
+          </div>
+          <div class="calendar-weekdays">
+            <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+          </div>
+          <div id="journalCalendar" class="journal-calendar"></div>
+          <div id="calendarDaySummary" class="calendar-day-summary hidden"></div>
+        </section>
+
+        <section class="section">
+          <div class="section-title-row journal-history-title-row">
             <div>
               <p class="eyebrow">Riwayat</p>
               <h2>Journal Terbaru</h2>
             </div>
+            <label class="journal-search">
+              <span>⌕</span>
+              <input id="journalSearch" type="search" placeholder="Cari journal..." />
+            </label>
           </div>
           <div id="journalHistory" class="history-list"></div>
         </section>
@@ -389,9 +463,9 @@
             </article>
 
             <article class="metric-card">
-              <span class="metric-label">Overthinking</span>
-              <strong id="insightOverthinkingRate">-</strong>
-              <span class="metric-foot">Proporsi catatan trigger</span>
+              <span class="metric-label">Pikiran ramai</span>
+              <strong id="insightThoughtAverage">-</strong>
+              <span class="metric-foot">Rata-rata check-in 1–10</span>
             </article>
 
             <article class="metric-card">
@@ -424,13 +498,13 @@
         <section class="section panel chart-card">
           <div class="section-title-row">
             <div>
-              <p class="eyebrow">Overthinking</p>
-              <h2>Intensitas dari Waktu ke Waktu</h2>
+              <p class="eyebrow">Pikiran</p>
+              <h2>Seberapa Ramai dari Waktu ke Waktu</h2>
             </div>
           </div>
           <div class="chart-wrap">
-            <canvas id="overthinkingTrendChart"></canvas>
-            <div class="chart-empty" id="overthinkingTrendEmpty">Belum ada catatan trigger pada periode ini.</div>
+            <canvas id="thoughtTrendChart"></canvas>
+            <div class="chart-empty" id="thoughtTrendEmpty">Belum ada check-in pada periode ini.</div>
           </div>
         </section>
 
@@ -458,6 +532,14 @@
             <div class="ranking-empty">Belum ada trigger pada periode ini.</div>
           </div>
         </section>
+
+        <div id="insightMaturity" class="section insight-maturity">
+          <span class="insight-maturity-dot"></span>
+          <div>
+            <strong>Catatan baru mulai terkumpul</strong>
+            <span>Tambahkan beberapa check-in lagi untuk melihat perbandingan yang lebih berarti.</span>
+          </div>
+        </div>
 
         <section class="section panel relationship-panel">
           <div class="section-title-row">
@@ -587,16 +669,139 @@
     </nav>
   </div>
 
-  <div id="dataMenu" class="menu-popover hidden">
-    <button id="exportBtn">Export backup</button>
-    <label class="menu-file">
-      Import backup
+  <div id="dataMenu" class="menu-popover data-menu hidden">
+    <div class="data-menu-head">
+      <strong>Data Saya</strong>
+      <span>Semua catatan tersimpan di browser ini.</span>
+    </div>
+
+    <div id="dataMenuStats" class="data-menu-stats"></div>
+
+    <div id="backupReminder" class="backup-reminder hidden">
+      <strong>Backup disarankan</strong>
+      <span>Catatanmu mulai cukup banyak. Simpan salinan agar lebih aman.</span>
+    </div>
+
+    <button id="themeBtn" class="menu-row-btn">
+      <span>◐</span>
+      <span id="themeBtnLabel">Mode gelap</span>
+    </button>
+
+    <button id="exportBtn" class="menu-row-btn">
+      <span>⇩</span>
+      <span>Export backup</span>
+    </button>
+
+    <label class="menu-file menu-row-btn">
+      <span>⇧</span>
+      <span>Import backup</span>
       <input id="importInput" type="file" accept="application/json" />
     </label>
-    <button id="resetBtn" class="danger-text">Reset semua data</button>
+
+    <div class="data-menu-backup-date" id="lastBackupText">Backup terakhir: belum pernah</div>
+    <button id="resetBtn" class="danger-text menu-row-btn"><span>×</span><span>Reset semua data</span></button>
+  </div>
+
+  <div id="checkinModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="checkinTitle">
+    <div class="checkin-sheet">
+      <div class="checkin-sheet-head">
+        <div>
+          <p class="eyebrow">Check-in cepat</p>
+          <h2 id="checkinTitle">Bagaimana harimu sekarang?</h2>
+        </div>
+        <button id="closeCheckinBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
+      </div>
+
+      <form id="checkinForm">
+        <div class="checkin-section">
+          <span class="checkin-label">Mood yang paling terasa</span>
+          <div class="mood-choice-grid" id="checkinMoodChoices">
+            <button type="button" data-mood="Senang"><span>😊</span><small>Senang</small></button>
+            <button type="button" data-mood="Tenang"><span>😌</span><small>Tenang</small></button>
+            <button type="button" data-mood="Biasa"><span>🙂</span><small>Biasa</small></button>
+            <button type="button" data-mood="Cemas"><span>😟</span><small>Cemas</small></button>
+            <button type="button" data-mood="Sedih"><span>😔</span><small>Sedih</small></button>
+            <button type="button" data-mood="Marah"><span>😠</span><small>Marah</small></button>
+            <button type="button" data-mood="Lelah"><span>😪</span><small>Lelah</small></button>
+            <button type="button" data-mood="Takut"><span>😣</span><small>Takut</small></button>
+          </div>
+        </div>
+
+        <div class="checkin-section checkin-two-col">
+          <label>
+            <span>Mood lain, kalau ada</span>
+            <select id="checkinSecondaryMood">
+              <option value="">Tidak ada</option>
+              <option value="Senang">Senang</option>
+              <option value="Tenang">Tenang</option>
+              <option value="Biasa">Biasa</option>
+              <option value="Cemas">Cemas</option>
+              <option value="Sedih">Sedih</option>
+              <option value="Marah">Marah</option>
+              <option value="Lelah">Lelah</option>
+              <option value="Takut">Takut</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Seberapa kuat perasaan ini? <b id="checkinMoodIntensityValue">5</b></span>
+            <input id="checkinMoodIntensity" type="range" min="1" max="10" value="5" />
+          </label>
+        </div>
+
+        <div class="checkin-section">
+          <span class="checkin-label">Energi</span>
+          <div class="energy-choice-row" id="checkinEnergyChoices">
+            <button type="button" data-energy="1">Sangat rendah</button>
+            <button type="button" data-energy="2">Rendah</button>
+            <button type="button" data-energy="3">Sedang</button>
+            <button type="button" data-energy="4">Baik</button>
+            <button type="button" data-energy="5">Tinggi</button>
+          </div>
+        </div>
+
+        <div class="checkin-section">
+          <label>
+            <span>Pikiran terasa seberapa ramai? <b id="checkinThoughtsValue">5</b>/10</span>
+            <input id="checkinThoughts" type="range" min="1" max="10" value="5" />
+            <small>1 = tenang · 10 = sangat ramai</small>
+          </label>
+        </div>
+
+        <div class="checkin-section">
+          <div class="label-block">
+            <span>Ada yang relevan hari ini?</span>
+            <small>Opsional. Pilih hanya yang memang terasa relevan.</small>
+          </div>
+          <div class="chip-grid context-chip-grid" id="checkinContextChips">
+            <label class="chip"><input type="checkbox" value="Kafein sore/malam"><span>☕ Kafein sore/malam</span></label>
+            <label class="chip"><input type="checkbox" value="Banyak layar"><span>📱 Banyak layar</span></label>
+            <label class="chip"><input type="checkbox" value="Aktivitas fisik"><span>🚶 Aktivitas fisik</span></label>
+            <label class="chip"><input type="checkbox" value="Makan larut"><span>🍽 Makan larut</span></label>
+            <label class="chip"><input type="checkbox" value="Kurang minum"><span>💧 Kurang minum</span></label>
+            <label class="chip"><input type="checkbox" value="Banyak aktivitas sosial"><span>👥 Banyak aktivitas sosial</span></label>
+            <label class="chip"><input type="checkbox" value="Hari yang padat"><span>💼 Hari yang padat</span></label>
+          </div>
+        </div>
+
+        <div class="checkin-section">
+          <label>
+            <span>Catatan kecil <small>(opsional)</small></span>
+            <textarea id="checkinNote" rows="3" placeholder="Ada hal lain yang ingin kamu ingat dari momen ini?"></textarea>
+          </label>
+        </div>
+
+        <button class="primary-btn checkin-save-btn" type="submit">Simpan check-in</button>
+      </form>
+
+      <div class="checkin-recent">
+        <p class="eyebrow">Check-in terbaru</p>
+        <div id="recentCheckins" class="checkin-recent-list"></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=8.0"></script>
+  <script src="app.js?v=9.0"></script>
 </body>
 </html>
