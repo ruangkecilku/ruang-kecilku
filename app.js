@@ -10,7 +10,8 @@ const state = {
   journals: load(KEYS.journals),
   charts: {},
   overthinking: false,
-  control: "Bisa aku kendalikan"
+  control: "Bisa aku kendalikan",
+  insightPeriod: 7
 };
 
 function load(key) {
@@ -55,6 +56,24 @@ function todayLocal() {
 
 function timeLocal() {
   return new Date().toTimeString().slice(0, 5);
+}
+
+function startDateForDays(days) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - (days - 1));
+  return d;
+}
+
+function isDateInLastDays(dateString, days) {
+  if (!dateString) return false;
+  const d = new Date(`${dateString}T00:00:00`);
+  return d >= startDateForDays(days);
+}
+
+function filterByInsightPeriod(items) {
+  if (state.insightPeriod === "all") return [...items];
+  return items.filter(item => isDateInLastDays(item.date, Number(state.insightPeriod)));
 }
 
 function byDateTimeDesc(a, b) {
@@ -106,6 +125,19 @@ document.querySelectorAll("[data-page]").forEach(btn => {
 
 document.querySelectorAll("[data-go]").forEach(btn => {
   btn.addEventListener("click", () => switchPage(btn.dataset.go));
+});
+
+document.querySelectorAll("#insightPeriod [data-period]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const value = btn.dataset.period;
+    state.insightPeriod = value === "all" ? "all" : Number(value);
+
+    document.querySelectorAll("#insightPeriod [data-period]").forEach(item => {
+      item.classList.toggle("active", item === btn);
+    });
+
+    renderInsights();
+  });
 });
 
 function setupRange(inputId, valueId) {
@@ -224,18 +256,35 @@ function renderHome() {
   const triggers = [...state.triggers].sort(byDateTimeDesc);
   const sleeps = [...state.sleep].sort(byDateTimeDesc);
   const over = triggers.filter(x => x.overthinking);
+  const today = todayLocal();
 
-  document.getElementById("homeTriggerCount").textContent = triggers.length;
-  document.getElementById("homeOverthinkingCount").textContent = over.length;
+  const todayTriggers = triggers.filter(x => x.date === today);
+  const todayOver = todayTriggers.filter(x => x.overthinking);
+  const weekTriggers = triggers.filter(x => isDateInLastDays(x.date, 7));
 
   const latestTrigger = triggers[0];
   const latestSleep = sleeps[0];
+  const latestTodayTrigger = todayTriggers[0];
+  const latestTodayOver = todayOver[0];
 
-  document.getElementById("homeLastMood").textContent = latestTrigger?.mood || "-";
-  document.getElementById("homeLastMoodDate").textContent = latestTrigger ? formatDate(latestTrigger.date) : "Belum ada data";
+  document.getElementById("homeTodayMood").textContent =
+    latestTodayTrigger ? latestTodayTrigger.mood : "-";
+  document.getElementById("homeTodayMoodFoot").textContent =
+    latestTodayTrigger
+      ? `${latestTodayTrigger.moodIntensity}/10 · ${latestTodayTrigger.time}`
+      : "Belum ada catatan hari ini";
 
-  document.getElementById("homeLastSleep").textContent = latestSleep ? `${latestSleep.hours}j` : "-";
-  document.getElementById("homeLastSleepDate").textContent = latestSleep ? formatDate(latestSleep.date) : "Belum ada data";
+  document.getElementById("homeTodayOverthinking").textContent =
+    latestTodayOver ? `${latestTodayOver.overthinkingIntensity}/10` : "-";
+  document.getElementById("homeTodayOverthinkingFoot").textContent =
+    latestTodayOver ? `${latestTodayOver.time}` : "Belum tercatat hari ini";
+
+  document.getElementById("homeLastSleep").textContent =
+    latestSleep ? `${latestSleep.hours}j` : "-";
+  document.getElementById("homeLastSleepDate").textContent =
+    latestSleep ? formatDate(latestSleep.date) : "Belum ada data";
+
+  document.getElementById("homeWeekCount").textContent = weekTriggers.length;
 
   const moodCard = document.getElementById("latestMoodCard");
   if (!latestTrigger) {
@@ -266,38 +315,41 @@ function renderHome() {
 
   const shortInsight = document.getElementById("shortInsight");
 
-if (triggers.length === 0) {
-  shortInsight.textContent =
-    "Belum ada data. Isi satu catatan trigger untuk mulai melihat insight.";
+  if (triggers.length === 0) {
+    shortInsight.textContent =
+      "Belum ada data. Isi satu catatan trigger untuk mulai melihat insight.";
+    return;
+  }
 
-} else if (triggers.length === 1) {
-  const first = triggers[0];
+  if (triggers.length === 1) {
+    const first = triggers[0];
+    const triggerText = (first.triggers || []).length
+      ? ` Trigger yang tercatat: <strong>${escapeHtml(first.triggers.join(", "))}</strong>.`
+      : "";
+    const overthinkingText = first.overthinking
+      ? ` Overthinking tercatat dengan intensitas <strong>${first.overthinkingIntensity}/10</strong>.`
+      : " Tidak ada overthinking yang tercatat pada catatan ini.";
 
-  const triggerText = (first.triggers || []).length
-    ? ` Trigger yang tercatat: <strong>${escapeHtml(first.triggers.join(", "))}</strong>.`
-    : "";
+    shortInsight.innerHTML =
+      `Catatan pertama menunjukkan mood <strong>${escapeHtml(first.mood)}</strong> ` +
+      `dengan intensitas <strong>${first.moodIntensity}/10</strong>.` +
+      overthinkingText +
+      triggerText +
+      ` Tambahkan beberapa catatan lagi untuk melihat pola yang lebih konsisten.`;
+    return;
+  }
 
-  const overthinkingText = first.overthinking
-    ? ` Overthinking tercatat dengan intensitas <strong>${first.overthinkingIntensity}/10</strong>.`
-    : " Tidak ada overthinking yang tercatat pada catatan ini.";
+  const recent = weekTriggers.length ? weekTriggers : triggers;
+  const recentOver = recent.filter(x => x.overthinking);
+  const topMood = topFrequency(recent.map(x => x.mood).filter(Boolean));
+  const topTrigger = topFrequency(recent.flatMap(x => x.triggers || []));
+  const overPct = Math.round((recentOver.length / recent.length) * 100);
 
   shortInsight.innerHTML =
-    `Catatan pertama menunjukkan mood <strong>${escapeHtml(first.mood)}</strong> ` +
-    `dengan intensitas <strong>${first.moodIntensity}/10</strong>.` +
-    overthinkingText +
-    triggerText +
-    ` Tambahkan beberapa catatan lagi untuk melihat pola yang lebih konsisten.`;
-
-} else {
-  const avgMood = average(triggers.map(x => x.moodIntensity));
-  const topTrigger = topFrequency(triggers.flatMap(x => x.triggers));
-  const overPct = Math.round((over.length / triggers.length) * 100);
-
-  shortInsight.innerHTML =
-    `Rata-rata intensitas mood <strong>${avgMood.toFixed(1)}/10</strong>. ` +
-    `${overPct}% catatan berkaitan dengan overthinking.` +
-    `${topTrigger ? ` Trigger yang paling sering muncul adalah <strong>${escapeHtml(topTrigger[0])}</strong>.` : ""}`;
-}
+    `${recent === weekTriggers ? "Dalam 7 hari terakhir" : "Dari seluruh catatan"}, ` +
+    `${topMood ? `mood yang paling sering muncul adalah <strong>${escapeHtml(topMood[0])}</strong>. ` : ""}` +
+    `Overthinking muncul pada <strong>${overPct}%</strong> catatan.` +
+    `${topTrigger ? ` Trigger yang paling sering tercatat adalah <strong>${escapeHtml(topTrigger[0])}</strong>.` : ""}`;
 }
 
 function renderTriggerHistory() {
@@ -418,25 +470,94 @@ function countsBy(values) {
 }
 
 function renderInsights() {
-  const triggers = [...state.triggers].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  const allTriggers = [...state.triggers].sort((a, b) =>
+    `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)
+  );
+  const allSleep = [...state.sleep].sort((a, b) =>
+    `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`)
+  );
+
+  const triggers = filterByInsightPeriod(allTriggers);
+  const sleeps = filterByInsightPeriod(allSleep);
   const over = triggers.filter(x => x.overthinking);
 
-  document.getElementById("insightTriggerCount").textContent = triggers.length;
-  document.getElementById("insightOverthinkingCount").textContent = over.length;
-  document.getElementById("insightMoodAverage").textContent = average(triggers.map(x => x.moodIntensity)).toFixed(1);
-  document.getElementById("insightOverthinkingAverage").textContent = average(over.map(x => x.overthinkingIntensity)).toFixed(1);
+  const periodLabel =
+    state.insightPeriod === "all"
+      ? "Semua data"
+      : `${state.insightPeriod} hari terakhir`;
 
-  const moodTop = topFrequency(triggers.map(x => x.mood).filter(Boolean));
-  document.getElementById("frequentMood").innerHTML = moodTop
-    ? `Mood yang paling sering muncul adalah <strong>${escapeHtml(moodTop[0])}</strong>, tercatat ${moodTop[1]} kali.`
-    : "Belum ada data.";
+  document.getElementById("insightPeriodNote").textContent = periodLabel;
 
-  const controlTop = topFrequency(triggers.map(x => x.control).filter(Boolean));
-  document.getElementById("controlPattern").innerHTML = controlTop
-    ? `Kategori kendali yang paling sering dipilih adalah <strong>${escapeHtml(controlTop[0])}</strong>, sebanyak ${controlTop[1]} catatan.`
-    : "Belum ada data.";
+  const moodAvg = average(triggers.map(x => x.moodIntensity));
+  const overAvg = average(over.map(x => x.overthinkingIntensity));
+  const topTrigger = topFrequency(triggers.flatMap(x => x.triggers || []));
+  const sleepAvg = average(sleeps.map(x => x.hours));
 
+  document.getElementById("insightMoodAverage").textContent =
+    triggers.length ? `${moodAvg.toFixed(1)}/10` : "-";
+  document.getElementById("insightMoodAverageFoot").textContent =
+    triggers.length ? `${triggers.length} catatan pada periode ini` : "Belum ada catatan";
+
+  document.getElementById("insightOverthinkingAverage").textContent =
+    over.length ? `${overAvg.toFixed(1)}/10` : "-";
+  document.getElementById("insightOverthinkingAverageFoot").textContent =
+    over.length ? `${over.length} catatan overthinking` : "Belum ada overthinking";
+
+  document.getElementById("insightTopTrigger").textContent =
+    topTrigger ? topTrigger[0] : "-";
+  document.getElementById("insightTopTriggerFoot").textContent =
+    topTrigger ? `${topTrigger[1]} kali tercatat` : "Belum ada trigger";
+
+  document.getElementById("insightSleepAverage").textContent =
+    sleeps.length ? `${sleepAvg.toFixed(1)}j` : "-";
+  document.getElementById("insightSleepAverageFoot").textContent =
+    sleeps.length ? `${sleeps.length} catatan tidur` : "Belum ada data tidur";
+
+  renderInsightPatterns(triggers, sleeps, over);
   renderCharts(triggers, over);
+}
+
+function renderInsightPatterns(triggers, sleeps, over) {
+  const root = document.getElementById("insightPatterns");
+
+  if (!triggers.length && !sleeps.length) {
+    root.innerHTML = `<div class="pattern-empty">Belum ada data pada periode ini.</div>`;
+    return;
+  }
+
+  const patterns = [];
+
+  if (triggers.length) {
+    const topMood = topFrequency(triggers.map(x => x.mood).filter(Boolean));
+    if (topMood) {
+      patterns.push(
+        `<strong>Mood paling sering:</strong> ${escapeHtml(topMood[0])}, muncul pada ${topMood[1]} catatan.`
+      );
+    }
+
+    const overPct = Math.round((over.length / triggers.length) * 100);
+    patterns.push(
+      `<strong>Overthinking:</strong> muncul pada ${overPct}% dari ${triggers.length} catatan trigger.`
+    );
+
+    const controlTop = topFrequency(triggers.map(x => x.control).filter(Boolean));
+    if (controlTop) {
+      patterns.push(
+        `<strong>Pola kendali:</strong> pilihan yang paling sering adalah ${escapeHtml(controlTop[0])}.`
+      );
+    }
+  }
+
+  if (sleeps.length) {
+    const avgQuality = average(sleeps.map(x => x.quality));
+    patterns.push(
+      `<strong>Kualitas tidur:</strong> rata-rata ${avgQuality.toFixed(1)}/10 dari ${sleeps.length} catatan tidur.`
+    );
+  }
+
+  root.innerHTML = patterns
+    .map(text => `<div class="pattern-item">${text}</div>`)
+    .join("");
 }
 
 function destroyChart(name) {
@@ -450,9 +571,9 @@ function renderCharts(triggers, over) {
   const hasChart = typeof Chart !== "undefined";
   if (!hasChart) return;
 
-  Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  Chart.defaults.color = "#7b746e";
-  Chart.defaults.borderColor = "rgba(123, 116, 110, 0.14)";
+  Chart.defaults.font.family = '"Nunito Sans", Arial, sans-serif';
+  Chart.defaults.color = "#7B7B72";
+  Chart.defaults.borderColor = "rgba(123, 123, 114, 0.16)";
 
   // Mood trend
   destroyChart("mood");
@@ -466,11 +587,15 @@ function renderCharts(triggers, over) {
         datasets: [{
           label: "Intensitas mood",
           data: triggers.map(x => x.moodIntensity),
+          borderColor: "#5C735F",
+          backgroundColor: "rgba(92, 115, 95, 0.14)",
+          pointBackgroundColor: "#435846",
+          pointBorderColor: "#FFFDF8",
           borderWidth: 2,
           tension: 0.35,
           pointRadius: 3,
           pointHoverRadius: 5,
-          fill: false
+          fill: true
         }]
       },
       options: {
@@ -499,6 +624,8 @@ function renderCharts(triggers, over) {
         datasets: [{
           label: "Overthinking",
           data: recentOver.map(x => x.overthinkingIntensity),
+          backgroundColor: "rgba(239, 160, 189, 0.72)",
+          borderColor: "#EFA0BD",
           borderWidth: 1,
           borderRadius: 8
         }]
@@ -529,8 +656,18 @@ function renderCharts(triggers, over) {
         labels: triggerEntries.map(x => x[0]),
         datasets: [{
           data: triggerEntries.map(x => x[1]),
+          backgroundColor: [
+            "#5C735F",
+            "#EFA0BD",
+            "#A9B9A7",
+            "#D5A7B9",
+            "#8D9D8A",
+            "#D8C9B8",
+            "#435846",
+            "#F0C6D6"
+          ],
           borderWidth: 3,
-          borderColor: "#fffdf9"
+          borderColor: "#FFFDF8"
         }]
       },
       options: {

@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f7f5f2" />
+  <meta name="theme-color" content="#F4EFE5" />
   <title>Mood Tracker</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -56,37 +59,40 @@
         <div class="page-heading">
           <p class="eyebrow">Hari ini</p>
           <h1>Beranda</h1>
-          <p>Ruang kecil untuk memahami apa yang terjadi di dalam pikiran dan perasaanmu.</p>
+          <p>Lihat kondisi terbaru secara cepat. Gunakan Insight untuk membaca pola dari kumpulan data.</p>
         </div>
 
         <section class="section">
           <div class="section-title-row">
             <div>
-              <p class="eyebrow">Overview</p>
+              <p class="eyebrow">Hari ini</p>
               <h2>Ringkasan</h2>
             </div>
           </div>
 
           <div class="summary-grid">
             <article class="metric-card">
-              <span class="metric-label">Catatan trigger</span>
-              <strong id="homeTriggerCount">0</strong>
-              <span class="metric-foot">Total catatan</span>
+              <span class="metric-label">Mood hari ini</span>
+              <strong id="homeTodayMood">-</strong>
+              <span id="homeTodayMoodFoot" class="metric-foot">Belum ada catatan hari ini</span>
             </article>
+
             <article class="metric-card">
-              <span class="metric-label">Catatan overthinking</span>
-              <strong id="homeOverthinkingCount">0</strong>
-              <span class="metric-foot">Trigger terkait</span>
+              <span class="metric-label">Overthinking hari ini</span>
+              <strong id="homeTodayOverthinking">-</strong>
+              <span id="homeTodayOverthinkingFoot" class="metric-foot">Belum tercatat hari ini</span>
             </article>
-            <article class="metric-card">
-              <span class="metric-label">Mood terakhir</span>
-              <strong id="homeLastMood">-</strong>
-              <span id="homeLastMoodDate" class="metric-foot">Belum ada data</span>
-            </article>
+
             <article class="metric-card">
               <span class="metric-label">Tidur terakhir</span>
               <strong id="homeLastSleep">-</strong>
               <span id="homeLastSleepDate" class="metric-foot">Belum ada data</span>
+            </article>
+
+            <article class="metric-card">
+              <span class="metric-label">Catatan 7 hari</span>
+              <strong id="homeWeekCount">0</strong>
+              <span class="metric-foot">Catatan trigger</span>
             </article>
           </div>
         </section>
@@ -122,7 +128,7 @@
             <button class="text-btn" data-go="insight">Lihat Insight</button>
           </div>
           <div id="shortInsight" class="insight-copy">
-            Belum cukup data untuk membaca pola. Isi beberapa catatan terlebih dahulu.
+            Belum ada data. Isi satu catatan trigger untuk mulai melihat insight.
           </div>
         </section>
       </section>
@@ -342,36 +348,52 @@
         <div class="page-heading">
           <p class="eyebrow">Pola data</p>
           <h1>Insight</h1>
-          <p>Ringkasan pola berdasarkan data yang kamu masukkan. Ini bukan diagnosis medis.</p>
+          <p>Baca pola dari data yang sudah kamu catat. Pilih periode untuk melihat perubahan dalam rentang waktu yang berbeda.</p>
         </div>
+
+        <section class="section insight-toolbar">
+          <div>
+            <p class="eyebrow">Periode</p>
+            <div class="period-switch" id="insightPeriod">
+              <button type="button" data-period="7" class="active">7 Hari</button>
+              <button type="button" data-period="30">30 Hari</button>
+              <button type="button" data-period="all">Semua</button>
+            </div>
+          </div>
+          <div class="period-note" id="insightPeriodNote">7 hari terakhir</div>
+        </section>
 
         <section class="section">
           <div class="section-title-row">
             <div>
-              <p class="eyebrow">Overview</p>
-              <h2>Gambaran Data</h2>
+              <p class="eyebrow">Ringkasan pola</p>
+              <h2>Gambaran Periode</h2>
             </div>
           </div>
+
           <div class="summary-grid">
             <article class="metric-card">
-              <span class="metric-label">Trigger</span>
-              <strong id="insightTriggerCount">0</strong>
-              <span class="metric-foot">Total catatan</span>
+              <span class="metric-label">Rata-rata mood</span>
+              <strong id="insightMoodAverage">-</strong>
+              <span id="insightMoodAverageFoot" class="metric-foot">Belum ada catatan</span>
             </article>
-            <article class="metric-card">
-              <span class="metric-label">Overthinking</span>
-              <strong id="insightOverthinkingCount">0</strong>
-              <span class="metric-foot">Kejadian tercatat</span>
-            </article>
-            <article class="metric-card">
-              <span class="metric-label">Rata-rata intensitas mood</span>
-              <strong id="insightMoodAverage">0.0</strong>
-              <span class="metric-foot">Skala 1–10</span>
-            </article>
+
             <article class="metric-card">
               <span class="metric-label">Rata-rata overthinking</span>
-              <strong id="insightOverthinkingAverage">0.0</strong>
-              <span class="metric-foot">Skala 1–10</span>
+              <strong id="insightOverthinkingAverage">-</strong>
+              <span id="insightOverthinkingAverageFoot" class="metric-foot">Belum ada catatan</span>
+            </article>
+
+            <article class="metric-card">
+              <span class="metric-label">Trigger teratas</span>
+              <strong id="insightTopTrigger">-</strong>
+              <span id="insightTopTriggerFoot" class="metric-foot">Belum ada trigger</span>
+            </article>
+
+            <article class="metric-card">
+              <span class="metric-label">Rata-rata tidur</span>
+              <strong id="insightSleepAverage">-</strong>
+              <span id="insightSleepAverageFoot" class="metric-foot">Belum ada data tidur</span>
             </article>
           </div>
         </section>
@@ -386,7 +408,7 @@
             </div>
             <div class="chart-wrap">
               <canvas id="moodTrendChart"></canvas>
-              <div class="chart-empty" id="moodChartEmpty">Belum ada data mood.</div>
+              <div class="chart-empty" id="moodChartEmpty">Belum ada data mood pada periode ini.</div>
             </div>
           </section>
 
@@ -399,7 +421,7 @@
             </div>
             <div class="chart-wrap">
               <canvas id="overthinkingChart"></canvas>
-              <div class="chart-empty" id="overthinkingChartEmpty">Belum ada data overthinking.</div>
+              <div class="chart-empty" id="overthinkingChartEmpty">Belum ada data overthinking pada periode ini.</div>
             </div>
           </section>
 
@@ -412,31 +434,30 @@
             </div>
             <div class="chart-wrap donut">
               <canvas id="triggerChart"></canvas>
-              <div class="chart-empty" id="triggerChartEmpty">Belum ada data trigger.</div>
+              <div class="chart-empty" id="triggerChartEmpty">Belum ada data trigger pada periode ini.</div>
             </div>
           </section>
         </div>
 
-        <div class="insight-grid">
-          <section class="section panel">
-            <p class="eyebrow">Mood</p>
-            <h2>Mood yang Sering Muncul</h2>
-            <div id="frequentMood" class="insight-copy">Belum ada data.</div>
-          </section>
-
-          <section class="section panel">
-            <p class="eyebrow">Kendali</p>
-            <h2>Pola Kendali</h2>
-            <div id="controlPattern" class="insight-copy">Belum ada data.</div>
-          </section>
-        </div>
+        <section class="section panel">
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Ringkasan analisis</p>
+              <h2>Pola yang Terlihat</h2>
+            </div>
+          </div>
+          <div id="insightPatterns" class="pattern-list">
+            <div class="pattern-empty">Belum cukup data untuk menampilkan pola.</div>
+          </div>
+        </section>
 
         <section class="section panel note-panel">
           <p class="eyebrow">Catatan</p>
           <h2>Tentang Insight</h2>
-          <p>Insight di halaman ini hanya membantu membaca pola dari data yang kamu masukkan. Data tidak digunakan untuk menentukan diagnosis atau kondisi medis.</p>
+          <p>Insight hanya merangkum pola dari data yang kamu masukkan. Pola ini tidak menunjukkan sebab-akibat dan tidak digunakan untuk menentukan diagnosis medis.</p>
         </section>
       </section>
+
     </main>
 
     <nav class="bottom-nav" aria-label="Navigasi bawah">
@@ -461,4 +482,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-<!-- trigger github pages -->
