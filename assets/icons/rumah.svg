@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<!-- Asset slot for Piyo illustration from approved design system -->
+<circle cx="100" cy="100" r="70" fill="#FFE28A"/>
+<circle cx="75" cy="90" r="7" fill="#76502C"/>
+<circle cx="125" cy="90" r="7" fill="#76502C"/>
+<ellipse cx="100" cy="115" rx="12" ry="8" fill="#F2A65A"/>
+</svg>

@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ruang Kecilku</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-<img src="assets/piyo-main.svg" class="logo" alt="Piyo">
+<img src="assets/piyo/piyo-main.svg" class="piyo">
 <div>
 <h1>Ruang Kecilku</h1>
 <p>Tempat menyimpan rasa, cerita, dan momen kecil.</p>
@@ -16,28 +16,23 @@
 </header>
 
 <nav>
-<button>🏠 Rumah</button>
-<button>🍚 Makan</button>
-<button>🌤 Mood</button>
-<button>📖 Cerita</button>
-<button>🎁 Koleksi</button>
+<a>Rumah</a><a>Makan</a><a>Mood</a><a>Cerita</a><a>Koleksi</a>
 </nav>
 
 <main>
-<section class="card hero">
-<img src="assets/piyo-home.svg" alt="Piyo menyapa">
+<section class="hero">
+<img src="assets/pages/piyo-home.svg">
 <h2>Halo, kamu ☀</h2>
 <p>Bagaimana hari kecilmu hari ini?</p>
+<button>Mulai mencatat</button>
 </section>
 
-<section class="grid">
-<div class="card"><img src="assets/piyo-food.svg"><h3>Meja Kecilku</h3><p>Catat makanan yang kamu nikmati.</p></div>
-<div class="card"><img src="assets/piyo-happy.svg"><h3>Warna Hariku</h3><p>Pilih Piyo yang paling mirip dengan harimu.</p></div>
-<div class="card"><img src="assets/piyo-story.svg"><h3>Cerita Kecilku</h3><p>Simpan cerita sederhana hari ini.</p></div>
-<div class="card"><img src="assets/piyo-memory.svg"><h3>Jejak Kecilku</h3><p>Lihat kembali momen kecilmu.</p></div>
+<section class="cards">
+<div>🍚<h3>Meja Kecilku</h3><p>Simpan makanan yang kamu nikmati.</p></div>
+<div>🌤<h3>Warna Hariku</h3><p>Pilih Piyo yang mirip dengan harimu.</p></div>
+<div>📖<h3>Cerita Kecilku</h3><p>Tulis cerita sederhana.</p></div>
+<div>🎁<h3>Jejak Kecilku</h3><p>Lihat kembali momen kecilmu.</p></div>
 </section>
 </main>
-
-<script src="app.js"></script>
 </body>
 </html>
