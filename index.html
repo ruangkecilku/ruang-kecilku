@@ -9,9 +9,9 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Teman Harian" />
+  <meta name="apple-mobile-web-app-title" content="Ruang Kecilku" />
   <link rel="manifest" href="manifest.webmanifest?v=10.0" />
-  <title>Teman Harian</title>
+  <title>Ruang Kecilku</title>
   <link rel="icon" type="image/svg+xml" href="logo.svg?v=10.0" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -26,17 +26,17 @@
       <div class="brand">
         <img class="brand-logo" src="logo.svg?v=10.0" alt="" aria-hidden="true" />
         <div class="brand-copy">
-          <strong>Teman Harian</strong>
+          <strong>Ruang Kecilku</strong>
           <span>Ruang hangat untuk melihat bagaimana harimu berjalan.</span>
         </div>
       </div>
 
       <nav class="side-nav">
         <button class="nav-item active" data-page="home"><span>⌂</span><span>Beranda</span></button>
-        <button class="nav-item" data-page="trigger"><span>✦</span><span>Trigger</span></button>
-        <button class="nav-item" data-page="sleep"><span>◔</span><span>Tidur</span></button>
-        <button class="nav-item" data-page="journal"><span>▤</span><span>Journal</span></button>
-        <button class="nav-item" data-page="insight"><span>◈</span><span>Insight</span></button>
+        <button class="nav-item" data-page="trigger"><span>✦</span><span>Cerita</span></button>
+        <button class="nav-item" data-page="sleep"><span>◔</span><span>Makan</span></button>
+        <button class="nav-item" data-page="journal"><span>▤</span><span>Cerita</span></button>
+        <button class="nav-item" data-page="insight"><span>◈</span><span>Koleksi</span></button>
       </nav>
 
       <div class="sidebar-note">
@@ -49,7 +49,7 @@
         <div class="mobile-brand">
           <img class="brand-logo" src="logo.svg?v=10.0" alt="" aria-hidden="true" />
           <div class="brand-copy">
-            <strong>Teman Harian</strong>
+            <strong>Ruang Kecilku</strong>
             <span>Ruang hangat untuk melihat bagaimana harimu berjalan.</span>
           </div>
         </div>
@@ -72,7 +72,7 @@
           </div>
           <div class="home-hero-side">
             <div class="home-date-chip" id="homeDate">-</div>
-            <button id="openCheckinBtn" class="checkin-open-btn" type="button">+ Check-in hari ini</button>
+            <button id="openCheckinBtn" class="checkin-open-btn" type="button">+ Hari Ini hari ini</button>
           </div>
         </div>
 
@@ -114,7 +114,7 @@
 
             <article class="status-item status-item-compact">
               <div class="status-card-top">
-                <span class="status-label">Tidur tadi malam</span>
+                <span class="status-label">Makan tadi malam</span>
                 <div class="status-badge">🌙</div>
               </div>
               <strong id="homeLatestSleep">-</strong>
@@ -157,7 +157,7 @@
       <section class="page" id="page-trigger">
         <div class="page-heading">
           <p class="eyebrow">Catatan kejadian</p>
-          <h1>Trigger</h1>
+          <h1>Cerita</h1>
           <p>Catat kejadian, pemicu, mood, dan pikiran yang muncul.</p>
         </div>
 
@@ -266,7 +266,7 @@
             </div>
           </div>
 
-          <button class="primary-btn" type="submit">Simpan Trigger</button>
+          <button class="primary-btn" type="submit">Simpan Cerita</button>
         </form>
 
         <button type="button" class="section panel knowledge-inline-card" data-knowledge-link-category="mind">
@@ -294,7 +294,7 @@
       <section class="page" id="page-sleep">
         <div class="page-heading">
           <p class="eyebrow">Pola istirahat</p>
-          <h1>Tidur</h1>
+          <h1>Makan</h1>
           <p>Catat durasi dan kualitas tidur untuk melihat hubungannya dengan kondisi harianmu.</p>
         </div>
 
@@ -332,7 +332,7 @@
             </label>
           </div>
 
-          <button class="primary-btn" type="submit">Simpan Data Tidur</button>
+          <button class="primary-btn" type="submit">Simpan Data Makan</button>
         </form>
 
         <button type="button" class="section panel knowledge-inline-card" data-knowledge-link-category="sleep">
@@ -349,7 +349,7 @@
           <div class="section-title-row">
             <div>
               <p class="eyebrow">Riwayat</p>
-              <h2>Riwayat Tidur</h2>
+              <h2>Riwayat Makan</h2>
             </div>
           </div>
           <div id="sleepHistory" class="history-list"></div>
@@ -360,7 +360,7 @@
       <section class="page" id="page-journal">
         <div class="page-heading">
           <p class="eyebrow">Ruang pribadi</p>
-          <h1>Journal</h1>
+          <h1>Cerita</h1>
           <p>Tempat untuk menuliskan apa pun yang ingin kamu keluarkan hari ini.</p>
         </div>
 
@@ -393,7 +393,7 @@
             </label>
           </div>
 
-          <button class="primary-btn" type="submit">Simpan Journal</button>
+          <button class="primary-btn" type="submit">Simpan Cerita</button>
         </form>
 
         <section class="section panel journal-calendar-panel">
@@ -419,7 +419,7 @@
           <div class="section-title-row journal-history-title-row">
             <div>
               <p class="eyebrow">Riwayat</p>
-              <h2>Journal Terbaru</h2>
+              <h2>Cerita Terbaru</h2>
             </div>
             <label class="journal-search">
               <span>⌕</span>
@@ -434,7 +434,7 @@
       <section class="page" id="page-insight">
         <div class="page-heading">
           <p class="eyebrow">Analisis</p>
-          <h1>Insight</h1>
+          <h1>Koleksi</h1>
           <p>Lihat kecenderungan dari kumpulan catatanmu. Data pada halaman ini mengikuti periode yang dipilih.</p>
         </div>
 
@@ -514,8 +514,8 @@
         <section class="section panel chart-card">
           <div class="section-title-row">
             <div>
-              <p class="eyebrow">Tidur</p>
-              <h2>Durasi Tidur</h2>
+              <p class="eyebrow">Makan</p>
+              <h2>Durasi Makan</h2>
             </div>
           </div>
           <div class="chart-wrap">
@@ -527,7 +527,7 @@
         <section class="section panel">
           <div class="section-title-row">
             <div>
-              <p class="eyebrow">Trigger</p>
+              <p class="eyebrow">Cerita</p>
               <h2>Yang Paling Sering Tercatat</h2>
             </div>
           </div>
@@ -551,15 +551,15 @@
               <h2>Yang Mulai Terlihat</h2>
             </div>
           </div>
-          <div id="relationshipInsights" class="relationship-list">
+          <div id="relationshipKoleksis" class="relationship-list">
             <div class="relationship-empty">Belum cukup data untuk membandingkan hubungan antar-catatan.</div>
           </div>
         </section>
 
         <section class="section panel note-panel">
           <p class="eyebrow">Catatan</p>
-          <h2>Tentang Insight</h2>
-          <p>Insight merangkum pola deskriptif dari data yang kamu masukkan. Perbedaan antar-catatan tidak menunjukkan sebab-akibat dan tidak digunakan untuk menentukan diagnosis medis.</p>
+          <h2>Tentang Koleksi</h2>
+          <p>Koleksi merangkum pola deskriptif dari data yang kamu masukkan. Perbedaan antar-catatan tidak menunjukkan sebab-akibat dan tidak digunakan untuk menentukan diagnosis medis.</p>
         </section>
       </section>
 
@@ -665,10 +665,10 @@
 
     <nav class="bottom-nav" aria-label="Navigasi bawah">
       <button class="bottom-item active" data-page="home"><span>⌂</span><small>Beranda</small></button>
-      <button class="bottom-item" data-page="trigger"><span>✦</span><small>Trigger</small></button>
-      <button class="bottom-item" data-page="sleep"><span>◔</span><small>Tidur</small></button>
-      <button class="bottom-item" data-page="journal"><span>▤</span><small>Journal</small></button>
-      <button class="bottom-item" data-page="insight"><span>◈</span><small>Insight</small></button>
+      <button class="bottom-item" data-page="trigger"><span>✦</span><small>Cerita</small></button>
+      <button class="bottom-item" data-page="sleep"><span>◔</span><small>Makan</small></button>
+      <button class="bottom-item" data-page="journal"><span>▤</span><small>Cerita</small></button>
+      <button class="bottom-item" data-page="insight"><span>◈</span><small>Koleksi</small></button>
     </nav>
   </div>
 
@@ -763,7 +763,7 @@
 
         <div class="security-warning">
           <strong>Penting</strong>
-          <p>Karena tidak ada server atau database, tidak ada fitur “lupa password”. Jika password hilang, data terenkripsi tidak dapat dipulihkan oleh Teman Harian.</p>
+          <p>Karena tidak ada server atau database, tidak ada fitur “lupa password”. Jika password hilang, data terenkripsi tidak dapat dipulihkan oleh Ruang Kecilku.</p>
         </div>
 
         <button id="securitySubmitBtn" class="primary-btn" type="submit">Aktifkan & enkripsi data</button>
@@ -775,7 +775,7 @@
   <div id="vaultLockScreen" class="vault-lock-screen hidden" role="dialog" aria-modal="true" aria-labelledby="vaultLockTitle">
     <div class="vault-lock-card">
       <img src="logo.svg?v=10.0" class="vault-lock-logo" alt="" aria-hidden="true" />
-      <p class="eyebrow">Teman Harian</p>
+      <p class="eyebrow">Ruang Kecilku</p>
       <h1 id="vaultLockTitle">Catatanmu terkunci</h1>
       <p class="vault-lock-copy">Masukkan password utama untuk membuka data yang tersimpan di perangkat ini.</p>
 
@@ -785,7 +785,7 @@
           <input id="unlockPassword" type="password" autocomplete="current-password" required autofocus />
         </label>
         <p id="unlockError" class="unlock-error hidden">Password tidak cocok atau data tidak dapat dibuka.</p>
-        <button id="unlockBtn" class="primary-btn" type="submit">Buka Teman Harian</button>
+        <button id="unlockBtn" class="primary-btn" type="submit">Buka Ruang Kecilku</button>
       </form>
 
       <div class="vault-lock-foot">
@@ -799,7 +799,7 @@
     <div class="checkin-sheet">
       <div class="checkin-sheet-head">
         <div>
-          <p class="eyebrow">Check-in cepat</p>
+          <p class="eyebrow">Hari Ini cepat</p>
           <h2 id="checkinTitle">Bagaimana harimu sekarang?</h2>
         </div>
         <button id="closeCheckinBtn" class="modal-close" type="button" aria-label="Tutup">×</button>
@@ -888,7 +888,7 @@
       </form>
 
       <div class="checkin-recent">
-        <p class="eyebrow">Check-in terbaru</p>
+        <p class="eyebrow">Hari Ini terbaru</p>
         <div id="recentCheckins" class="checkin-recent-list"></div>
       </div>
     </div>

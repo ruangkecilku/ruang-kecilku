@@ -1,16 +1,16 @@
 :root {
   /* Palet dari index referensi asli */
-  --paper: #F4EFE5;
+  --paper: #FFF8E8;
   --paper-2: #F8F4EC;
-  --card: #FFFDF8;
+  --card: #FFFDF5;
   --ink: #20231F;
   --muted: #7B7B72;
   --line: #DDD9CF;
-  --sage: #5C735F;
-  --sage-dark: #435846;
-  --sage-soft: #E4EAE1;
-  --pink: #EFA0BD;
-  --pink-soft: #F8DCE7;
+  --sage: #C89A3A;
+  --sage-dark: #9B6D20;
+  --sage-soft: #EAF1D8;
+  --pink: #F4C4A0;
+  --pink-soft: #FBE8D8;
   --cream: #EEE8DC;
   --shadow: 0 10px 28px rgba(53, 55, 48, .08);
   --radius: 28px;
@@ -3670,4 +3670,41 @@ html[data-theme="dark"] .security-warning p {
   .vault-lock-card h1 {
     font-size: 33px;
   }
+}
+
+
+/* Ruang Kecilku V1 theme */
+:root {
+  --piyo-yellow:#F7D774;
+  --piyo-orange:#EFA94A;
+  --piyo-brown:#6B5542;
+}
+
+body {
+  font-family: "Nunito", "Quicksand", system-ui, sans-serif;
+}
+
+h1,h2,h3,.brand-name {
+  font-family: "Nunito", "Quicksand", sans-serif;
+  font-weight: 800;
+}
+
+.card, .panel, .modal-card {
+  border-radius: 30px;
+}
+
+.piyo-note {
+  background: #FFF1B8;
+  border-radius: 24px;
+  padding: 16px;
+  color: var(--piyo-brown);
+}
+
+.piyo-bubble {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#FFFDF5;
+  border-radius:26px;
+  padding:18px;
 }

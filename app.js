@@ -1,19 +1,19 @@
 const KEYS = {
-  triggers: "moodTracker.triggers",
-  sleep: "moodTracker.sleep",
-  journals: "moodTracker.journals",
-  checkins: "moodTracker.checkins",
-  theme: "moodTracker.theme",
-  lastBackupAt: "moodTracker.lastBackupAt",
-  securityMeta: "temanHarian.securityMeta",
-  secureVault: "temanHarian.secureVault"
+  stories: "ruangKecilku.stories",
+  foods: "ruangKecilku.foods",
+  stories: "ruangKecilku.stories",
+  dailyNotes: "ruangKecilku.dailyNotes",
+  theme: "ruangKecilku.theme",
+  lastBackupAt: "ruangKecilku.lastBackupAt",
+  securityMeta: "ruangKecilku.securityMeta",
+  secureVault: "ruangKecilku.secureVault"
 };
 
 const DATA_KEYS = new Set([
-  KEYS.triggers,
-  KEYS.sleep,
-  KEYS.journals,
-  KEYS.checkins
+  KEYS.stories,
+  KEYS.foods,
+  KEYS.stories,
+  KEYS.dailyNotes
 ]);
 
 function securityEnabledAtBoot() {
@@ -28,10 +28,10 @@ function securityEnabledAtBoot() {
 const SECURITY_ENABLED_AT_BOOT = securityEnabledAtBoot();
 
 const state = {
-  triggers: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.triggers),
-  sleep: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.sleep),
-  journals: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.journals),
-  checkins: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.checkins),
+  stories: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.stories),
+  foods: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.foods),
+  stories: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.stories),
+  dailyNotes: SECURITY_ENABLED_AT_BOOT ? [] : load(KEYS.dailyNotes),
   charts: {},
   overthinking: false,
   control: "Bisa aku kendalikan",
@@ -46,7 +46,7 @@ const state = {
 
 const KNOWLEDGE_CATEGORIES = [
   {
-    id: "sleep",
+    id: "foods",
     icon: "🌙",
     title: "Tidur & Istirahat",
     description: "Durasi, kualitas, jadwal tidur, cahaya, dan kebiasaan malam.",
@@ -106,8 +106,8 @@ const KNOWLEDGE_CATEGORIES = [
 const KNOWLEDGE_ARTICLES = [
   // TIDUR
   {
-    id: "sleep-hours",
-    category: "sleep",
+    id: "foods-hours",
+    category: "foods",
     title: "Berapa lama tidur yang dibutuhkan?",
     lead: "Tidak semua orang membutuhkan jumlah tidur yang sama. Usia menjadi salah satu acuan penting.",
     body: [
@@ -120,13 +120,13 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "CDC · About Sleep",
         type: "Panduan kesehatan resmi",
-        url: "https://www.cdc.gov/sleep/about/index.html"
+        url: "https://www.cdc.gov/foods/about/index.html"
       }
     ]
   },
   {
-    id: "sleep-schedule",
-    category: "sleep",
+    id: "foods-schedule",
+    category: "foods",
     title: "Apakah jadwal tidur yang konsisten penting?",
     lead: "Jam tidur dan bangun yang relatif konsisten membantu menjaga ritme tidur-bangun.",
     body: [
@@ -139,13 +139,13 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Healthy Sleep Habits",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       }
     ]
   },
   {
-    id: "sleep-light",
-    category: "sleep",
+    id: "foods-light",
+    category: "foods",
     title: "Apa hubungan cahaya malam dengan tidur?",
     lead: "Cahaya merupakan salah satu sinyal yang digunakan tubuh untuk mengatur kapan kita merasa terjaga dan mengantuk.",
     body: [
@@ -158,12 +158,12 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Sleep/Wake Cycle",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep/sleep-wake-cycle"
+        url: "https://www.nhlbi.nih.gov/health/foods/foods-wake-cycle"
       },
       {
         label: "NIH/NHLBI · Healthy Sleep Habits",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       }
     ]
   },
@@ -194,7 +194,7 @@ const KNOWLEDGE_ARTICLES = [
     ]
   },
   {
-    id: "mind-sleep",
+    id: "mind-foods",
     category: "mind",
     title: "Mengapa pikiran terasa lebih ramai saat mau tidur?",
     lead: "Penelitian menemukan hubungan yang konsisten antara worry atau rumination yang lebih tinggi dan tidur yang lebih buruk.",
@@ -234,7 +234,7 @@ const KNOWLEDGE_ARTICLES = [
 
   // MOOD
   {
-    id: "mood-sleep",
+    id: "mood-foods",
     category: "mood",
     title: "Tidur juga berkaitan dengan kesejahteraan emosional",
     lead: "Tidur yang baik bukan hanya soal rasa kantuk. CDC menyebut tidur penting bagi kesehatan dan kesejahteraan emosional.",
@@ -248,7 +248,7 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "CDC · About Sleep",
         type: "Panduan kesehatan resmi",
-        url: "https://www.cdc.gov/sleep/about/index.html"
+        url: "https://www.cdc.gov/foods/about/index.html"
       }
     ]
   },
@@ -291,14 +291,14 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "CDC · About Sleep",
         type: "Panduan kesehatan resmi",
-        url: "https://www.cdc.gov/sleep/about/index.html"
+        url: "https://www.cdc.gov/foods/about/index.html"
       }
     ]
   },
 
   // MAKAN & MINUM
   {
-    id: "food-caffeine-sleep",
+    id: "food-caffeine-foods",
     category: "food",
     title: "Kafein sore hari masih bisa terasa saat malam",
     lead: "Kafein adalah stimulan dan efeknya dapat bertahan selama beberapa jam.",
@@ -312,7 +312,7 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Healthy Sleep Habits",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       }
     ]
   },
@@ -393,7 +393,7 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Healthy Sleep Habits",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       }
     ]
   },
@@ -433,7 +433,7 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Healthy Sleep Habits",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       }
     ]
   },
@@ -452,14 +452,14 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Healthy Sleep Habits",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       }
     ]
   },
 
   // SALING BERKAITAN
   {
-    id: "link-mind-sleep",
+    id: "link-mind-foods",
     category: "link",
     title: "Pikiran ramai ↔ tidur",
     lead: "Pikiran berulang dan tidur sering muncul dalam penelitian sebagai dua hal yang saling berkaitan.",
@@ -497,7 +497,7 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "NIH/NHLBI · Caffeine & Sleep",
         type: "Panduan kesehatan resmi",
-        url: "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+        url: "https://www.nhlbi.nih.gov/health/foods-deprivation/healthy-foods-habits"
       },
       {
         label: "Nascimento et al. · Caffeine & Anxiety",
@@ -542,7 +542,7 @@ const KNOWLEDGE_ARTICLES = [
       {
         label: "CDC · About Sleep",
         type: "Panduan kesehatan resmi",
-        url: "https://www.cdc.gov/sleep/about/index.html"
+        url: "https://www.cdc.gov/foods/about/index.html"
       }
     ]
   },
@@ -704,19 +704,19 @@ function isVaultUnlocked() {
 function dataSnapshot() {
   return {
     version: 1,
-    app: "Teman Harian",
-    checkins: state.checkins,
-    triggers: state.triggers,
-    sleep: state.sleep,
-    journals: state.journals
+    app: "Ruang Kecilku",
+    dailyNotes: state.dailyNotes,
+    stories: state.stories,
+    foods: state.foods,
+    stories: state.stories
   };
 }
 
 function applySnapshot(data) {
-  state.checkins = Array.isArray(data?.checkins) ? data.checkins : [];
-  state.triggers = Array.isArray(data?.triggers) ? data.triggers : [];
-  state.sleep = Array.isArray(data?.sleep) ? data.sleep : [];
-  state.journals = Array.isArray(data?.journals) ? data.journals : [];
+  state.dailyNotes = Array.isArray(data?.dailyNotes) ? data.dailyNotes : [];
+  state.stories = Array.isArray(data?.stories) ? data.stories : [];
+  state.foods = Array.isArray(data?.foods) ? data.foods : [];
+  state.stories = Array.isArray(data?.stories) ? data.stories : [];
 }
 
 function bytesToBase64(bytes) {
@@ -827,16 +827,16 @@ function save(key, value) {
 }
 
 function removePlaintextData() {
-  [KEYS.checkins, KEYS.triggers, KEYS.sleep, KEYS.journals].forEach(key => {
+  [KEYS.dailyNotes, KEYS.stories, KEYS.foods, KEYS.stories].forEach(key => {
     localStorage.removeItem(key);
   });
 }
 
 function clearSensitiveState() {
-  state.checkins = [];
-  state.triggers = [];
-  state.sleep = [];
-  state.journals = [];
+  state.dailyNotes = [];
+  state.stories = [];
+  state.foods = [];
+  state.stories = [];
 }
 
 async function enableSecurity(password) {
@@ -937,7 +937,7 @@ async function lockVault({ automatic = false } = {}) {
   if (automatic) {
     const error = document.getElementById("unlockError");
     if (error) {
-      error.textContent = "Teman Harian terkunci otomatis setelah 10 menit tidak digunakan.";
+      error.textContent = "Ruang Kecilku terkunci otomatis setelah 10 menit tidak digunakan.";
       error.classList.remove("hidden");
     }
   }
@@ -999,7 +999,7 @@ function secureBackupObject() {
   return {
     type: "teman-harian-secure-backup",
     version: 1,
-    app: "Teman Harian",
+    app: "Ruang Kecilku",
     exportedAt: new Date().toISOString(),
     security: meta,
     vault,
@@ -1079,17 +1079,17 @@ function fallbackTimestamp(item, type) {
 
   let time = "12:00";
   if (type === "trigger" && item.time) time = item.time;
-  if (type === "sleep" && item.end) time = item.end;
+  if (type === "foods" && item.end) time = item.end;
 
   const stamp = new Date(`${item.date || "1970-01-01"}T${time}:00`).getTime();
   return Number.isFinite(stamp) ? stamp : 0;
 }
 
-function uniqueActiveDates(triggers, sleeps, journals) {
+function uniqueActiveDates(stories, foodss, stories) {
   return new Set([
-    ...triggers.map(x => x.date),
-    ...sleeps.map(x => x.date),
-    ...journals.map(x => x.date)
+    ...stories.map(x => x.date),
+    ...foodss.map(x => x.date),
+    ...stories.map(x => x.date)
   ].filter(Boolean)).size;
 }
 
@@ -1145,7 +1145,7 @@ function showToast(message) {
 function setDefaults() {
   document.getElementById("triggerDate").value = todayLocal();
   document.getElementById("triggerTime").value = timeLocal();
-  document.getElementById("sleepDate").value = todayLocal();
+  document.getElementById("foodsDate").value = todayLocal();
   document.getElementById("journalDate").value = todayLocal();
 }
 
@@ -1395,7 +1395,7 @@ function setupRange(inputId, valueId) {
 
 setupRange("moodIntensity", "moodIntensityValue");
 setupRange("overthinkingIntensity", "overthinkingIntensityValue");
-setupRange("sleepQuality", "sleepQualityValue");
+setupRange("foodsQuality", "foodsQualityValue");
 
 document.querySelectorAll("#overthinkingToggle button").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -1505,7 +1505,7 @@ document.getElementById("checkinForm").addEventListener("submit", e => {
   const secondaryMoodRaw = document.getElementById("checkinSecondaryMood").value;
   const secondaryMood = secondaryMoodRaw && secondaryMoodRaw !== state.checkinMood ? secondaryMoodRaw : "";
 
-  state.checkins.push({
+  state.dailyNotes.push({
     id: uid(),
     date,
     time,
@@ -1519,7 +1519,7 @@ document.getElementById("checkinForm").addEventListener("submit", e => {
     createdAt: Date.now()
   });
 
-  save(KEYS.checkins, state.checkins);
+  save(KEYS.dailyNotes, state.dailyNotes);
   renderAll();
   closeCheckinModal();
   showToast("Check-in disimpan.");
@@ -1527,7 +1527,7 @@ document.getElementById("checkinForm").addEventListener("submit", e => {
 
 function renderRecentCheckins() {
   const root = document.getElementById("recentCheckins");
-  const items = [...state.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0)).slice(0, 3);
+  const items = [...state.dailyNotes].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0)).slice(0, 3);
 
   if (!items.length) {
     root.innerHTML = `<div class="checkin-recent-empty">Belum ada check-in.</div>`;
@@ -1547,8 +1547,8 @@ function renderRecentCheckins() {
 
   root.querySelectorAll("[data-delete-checkin]").forEach(btn => {
     btn.addEventListener("click", () => {
-      state.checkins = state.checkins.filter(item => item.id !== btn.dataset.deleteCheckin);
-      save(KEYS.checkins, state.checkins);
+      state.dailyNotes = state.dailyNotes.filter(item => item.id !== btn.dataset.deleteCheckin);
+      save(KEYS.dailyNotes, state.dailyNotes);
       renderRecentCheckins();
       renderAll();
       showToast("Check-in dihapus.");
@@ -1566,7 +1566,7 @@ document.getElementById("triggerForm").addEventListener("submit", e => {
     date: document.getElementById("triggerDate").value,
     time: document.getElementById("triggerTime").value,
     event: document.getElementById("triggerEvent").value.trim(),
-    triggers: selectedTriggers,
+    stories: selectedTriggers,
     mood: document.getElementById("triggerMood").value,
     moodIntensity: Number(document.getElementById("moodIntensity").value),
     overthinking: state.overthinking,
@@ -1576,8 +1576,8 @@ document.getElementById("triggerForm").addEventListener("submit", e => {
     createdAt: Date.now()
   };
 
-  state.triggers.push(entry);
-  save(KEYS.triggers, state.triggers);
+  state.stories.push(entry);
+  save(KEYS.stories, state.stories);
 
   e.target.reset();
   state.overthinking = false;
@@ -1599,28 +1599,28 @@ document.getElementById("triggerForm").addEventListener("submit", e => {
   showToast("Trigger disimpan.");
 });
 
-document.getElementById("sleepForm").addEventListener("submit", e => {
+document.getElementById("foodsForm").addEventListener("submit", e => {
   e.preventDefault();
 
-  const start = document.getElementById("sleepStart").value;
-  const end = document.getElementById("sleepEnd").value;
+  const start = document.getElementById("foodsStart").value;
+  const end = document.getElementById("foodsEnd").value;
 
-  state.sleep.push({
+  state.foods.push({
     id: uid(),
-    date: document.getElementById("sleepDate").value,
+    date: document.getElementById("foodsDate").value,
     start,
     end,
     hours: getSleepHours(start, end),
-    quality: Number(document.getElementById("sleepQuality").value),
-    note: document.getElementById("sleepNote").value.trim(),
+    quality: Number(document.getElementById("foodsQuality").value),
+    note: document.getElementById("foodsNote").value.trim(),
     createdAt: Date.now()
   });
 
-  save(KEYS.sleep, state.sleep);
+  save(KEYS.foods, state.foods);
   e.target.reset();
-  document.getElementById("sleepDate").value = todayLocal();
-  document.getElementById("sleepQuality").value = 5;
-  document.getElementById("sleepQualityValue").textContent = "5";
+  document.getElementById("foodsDate").value = todayLocal();
+  document.getElementById("foodsQuality").value = 5;
+  document.getElementById("foodsQualityValue").textContent = "5";
 
   renderAll();
   showToast("Data tidur disimpan.");
@@ -1662,10 +1662,10 @@ function thoughtSummary(score) {
   return { label: "Ramai", meta: `${score}/10`, icon: "⛈️" };
 }
 
-function energySummary(sleep) {
-  if (!sleep) return { label: "-", meta: "Belum ada data tidur" };
-  const hours = Number(sleep.hours || 0);
-  const quality = Number(sleep.quality || 0);
+function energySummary(foods) {
+  if (!foods) return { label: "-", meta: "Belum ada data tidur" };
+  const hours = Number(foods.hours || 0);
+  const quality = Number(foods.quality || 0);
   const score = hours + quality / 2;
   if (score >= 10.5) return { label: "Baik", meta: "berdasarkan tidur terakhir" };
   if (score >= 8.5) return { label: "Sedang", meta: "berdasarkan tidur terakhir" };
@@ -1689,7 +1689,7 @@ function energyLabel(value) {
 }
 
 function latestCheckin() {
-  return [...state.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0] || null;
+  return [...state.dailyNotes].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0] || null;
 }
 
 function checkinDate(entry) {
@@ -1731,14 +1731,14 @@ document.getElementById("journalSearch").addEventListener("input", e => {
 document.getElementById("journalForm").addEventListener("submit", e => {
   e.preventDefault();
 
-  state.journals.push({
+  state.stories.push({
     id: uid(),
     date: document.getElementById("journalDate").value,
     text: document.getElementById("journalText").value.trim(),
     createdAt: Date.now()
   });
 
-  save(KEYS.journals, state.journals);
+  save(KEYS.stories, state.stories);
   e.target.reset();
   document.getElementById("journalDate").value = todayLocal();
 
@@ -1747,14 +1747,14 @@ document.getElementById("journalForm").addEventListener("submit", e => {
 });
 
 function renderHome() {
-  const triggers = [...state.triggers].sort(byDateTimeDesc);
-  const sleeps = [...state.sleep].sort(byDateTimeDesc);
-  const checkins = [...state.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+  const stories = [...state.stories].sort(byDateTimeDesc);
+  const foodss = [...state.foods].sort(byDateTimeDesc);
+  const dailyNotes = [...state.dailyNotes].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
-  const recentCheckin = checkins[0];
-  const latestTrigger = triggers[0];
-  const latestOverthinking = triggers.find(x => x.overthinking);
-  const latestSleep = sleeps[0];
+  const recentCheckin = dailyNotes[0];
+  const latestTrigger = stories[0];
+  const latestOverthinking = stories.find(x => x.overthinking);
+  const latestSleep = foodss[0];
 
   const hoursNow = new Date().getHours();
   const greet =
@@ -1803,7 +1803,7 @@ function renderHome() {
     latestSleep ? `kualitas ${latestSleep.quality}/10 · ${formatDate(latestSleep.date)}` : "Belum ada data";
 
   const activities = [
-    ...state.checkins.map(item => ({
+    ...state.dailyNotes.map(item => ({
       type: "checkin",
       label: "Check-in",
       detail: `${item.mood}${item.secondaryMood ? ` + ${item.secondaryMood}` : ""} · energi ${energyLabel(item.energy)} · pikiran ${item.thoughts}/10`,
@@ -1812,7 +1812,7 @@ function renderHome() {
       timeLabel: checkinTime(item),
       timestamp: Number(item.createdAt || 0)
     })),
-    ...state.journals.map(item => ({
+    ...state.stories.map(item => ({
       type: "journal",
       label: "Journal",
       detail: truncateText(item.text || "Catatan harian"),
@@ -1821,19 +1821,19 @@ function renderHome() {
       timeLabel: "",
       timestamp: fallbackTimestamp(item, "journal")
     })),
-    ...state.sleep.map(item => ({
-      type: "sleep",
+    ...state.foods.map(item => ({
+      type: "foods",
       label: "Tidur",
       detail: `${formatHoursFancy(item.hours)} · kualitas ${item.quality}/10`,
       date: item.date,
       time: "",
       timeLabel: item.end || "",
-      timestamp: fallbackTimestamp(item, "sleep")
+      timestamp: fallbackTimestamp(item, "foods")
     })),
-    ...state.triggers.map(item => ({
+    ...state.stories.map(item => ({
       type: "trigger",
       label: "Trigger",
-      detail: truncateText((item.triggers || []).join(" · ") || item.event || "Catatan trigger"),
+      detail: truncateText((item.stories || []).join(" · ") || item.event || "Catatan trigger"),
       date: item.date,
       time: item.time || "",
       timeLabel: item.time || "",
@@ -1850,7 +1850,7 @@ function renderHome() {
   const symbols = {
     checkin: "○",
     trigger: "✦",
-    sleep: "◔",
+    foods: "◔",
     journal: "▤"
   };
 
@@ -1870,7 +1870,7 @@ function renderHome() {
 
 function renderTriggerHistory() {
   const root = document.getElementById("triggerHistory");
-  const items = [...state.triggers].sort(byDateTimeDesc);
+  const items = [...state.stories].sort(byDateTimeDesc);
 
   if (!items.length) {
     root.innerHTML = `<div class="empty-state">Belum ada catatan trigger.</div>`;
@@ -1889,7 +1889,7 @@ function renderTriggerHistory() {
       <div class="history-body">${escapeHtml(item.event)}</div>
       ${item.reflection ? `<div class="history-reflection"><strong>Coba lihat dari sisi lain</strong><span>${escapeHtml(item.reflection)}</span></div>` : ""}
       <div class="badge-row">
-        ${(item.triggers || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join("")}
+        ${(item.stories || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join("")}
         ${item.overthinking ? `<span class="badge">Overthinking ${item.overthinkingIntensity}/10</span>` : ""}
       </div>
     </article>
@@ -1897,8 +1897,8 @@ function renderTriggerHistory() {
 
   root.querySelectorAll("[data-delete-trigger]").forEach(btn => {
     btn.addEventListener("click", () => {
-      state.triggers = state.triggers.filter(x => x.id !== btn.dataset.deleteTrigger);
-      save(KEYS.triggers, state.triggers);
+      state.stories = state.stories.filter(x => x.id !== btn.dataset.deleteTrigger);
+      save(KEYS.stories, state.stories);
       renderAll();
       showToast("Catatan trigger dihapus.");
     });
@@ -1906,8 +1906,8 @@ function renderTriggerHistory() {
 }
 
 function renderSleepHistory() {
-  const root = document.getElementById("sleepHistory");
-  const items = [...state.sleep].sort(byDateTimeDesc);
+  const root = document.getElementById("foodsHistory");
+  const items = [...state.foods].sort(byDateTimeDesc);
 
   if (!items.length) {
     root.innerHTML = `<div class="empty-state">Belum ada riwayat tidur.</div>`;
@@ -1921,16 +1921,16 @@ function renderSleepHistory() {
           <div class="history-title">${item.hours} jam · kualitas ${item.quality}/10</div>
           <div class="history-meta">${formatDate(item.date)} · ${item.start}–${item.end}</div>
         </div>
-        <button class="delete-btn" data-delete-sleep="${item.id}">Hapus</button>
+        <button class="delete-btn" data-delete-foods="${item.id}">Hapus</button>
       </div>
       ${item.note ? `<div class="history-body">${escapeHtml(item.note)}</div>` : ""}
     </article>
   `).join("");
 
-  root.querySelectorAll("[data-delete-sleep]").forEach(btn => {
+  root.querySelectorAll("[data-delete-foods]").forEach(btn => {
     btn.addEventListener("click", () => {
-      state.sleep = state.sleep.filter(x => x.id !== btn.dataset.deleteSleep);
-      save(KEYS.sleep, state.sleep);
+      state.foods = state.foods.filter(x => x.id !== btn.dataset.deleteSleep);
+      save(KEYS.foods, state.foods);
       renderAll();
       showToast("Data tidur dihapus.");
     });
@@ -1940,7 +1940,7 @@ function renderSleepHistory() {
 function renderJournalHistory(query = "") {
   const root = document.getElementById("journalHistory");
   const term = String(query || "").trim().toLowerCase();
-  let items = [...state.journals].sort(byDateTimeDesc);
+  let items = [...state.stories].sort(byDateTimeDesc);
 
   if (term) {
     items = items.filter(item => String(item.text || "").toLowerCase().includes(term));
@@ -1965,8 +1965,8 @@ function renderJournalHistory(query = "") {
 
   root.querySelectorAll("[data-delete-journal]").forEach(btn => {
     btn.addEventListener("click", () => {
-      state.journals = state.journals.filter(x => x.id !== btn.dataset.deleteJournal);
-      save(KEYS.journals, state.journals);
+      state.stories = state.stories.filter(x => x.id !== btn.dataset.deleteJournal);
+      save(KEYS.stories, state.stories);
       renderAll();
       showToast("Journal dihapus.");
     });
@@ -1975,10 +1975,10 @@ function renderJournalHistory(query = "") {
 
 function recordsForDate(date) {
   return {
-    checkins: state.checkins.filter(item => checkinDate(item) === date),
-    triggers: state.triggers.filter(item => item.date === date),
-    sleep: state.sleep.filter(item => item.date === date),
-    journals: state.journals.filter(item => item.date === date)
+    dailyNotes: state.dailyNotes.filter(item => checkinDate(item) === date),
+    stories: state.stories.filter(item => item.date === date),
+    foods: state.foods.filter(item => item.date === date),
+    stories: state.stories.filter(item => item.date === date)
   };
 }
 
@@ -2005,7 +2005,7 @@ function renderJournalCalendar() {
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     const date = d.toISOString().slice(0, 10);
     const records = recordsForDate(date);
-    const hasData = records.checkins.length || records.triggers.length || records.sleep.length || records.journals.length;
+    const hasData = records.dailyNotes.length || records.stories.length || records.foods.length || records.stories.length;
     const isToday = date === todayLocal();
 
     cells.push(`
@@ -2029,19 +2029,19 @@ function renderCalendarDay(date) {
   root.classList.remove("hidden");
 
   const parts = [];
-  if (records.checkins.length) {
-    const latest = [...records.checkins].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
+  if (records.dailyNotes.length) {
+    const latest = [...records.dailyNotes].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
     parts.push(`<div><strong>Check-in</strong><span>${moodIcon(latest.mood)} ${escapeHtml(latest.mood)} · energi ${escapeHtml(energyLabel(latest.energy))} · pikiran ${latest.thoughts}/10</span></div>`);
   }
-  if (records.triggers.length) {
-    parts.push(`<div><strong>Trigger</strong><span>${records.triggers.length} catatan</span></div>`);
+  if (records.stories.length) {
+    parts.push(`<div><strong>Trigger</strong><span>${records.stories.length} catatan</span></div>`);
   }
-  if (records.sleep.length) {
-    const latestSleep = records.sleep[records.sleep.length - 1];
+  if (records.foods.length) {
+    const latestSleep = records.foods[records.foods.length - 1];
     parts.push(`<div><strong>Tidur</strong><span>${formatHoursFancy(latestSleep.hours)} · kualitas ${latestSleep.quality}/10</span></div>`);
   }
-  if (records.journals.length) {
-    parts.push(`<div><strong>Journal</strong><span>${records.journals.length} catatan</span></div>`);
+  if (records.stories.length) {
+    parts.push(`<div><strong>Journal</strong><span>${records.stories.length} catatan</span></div>`);
   }
 
   root.innerHTML = `
@@ -2076,19 +2076,19 @@ function countsBy(values) {
 }
 
 function renderInsights() {
-  const allCheckins = [...state.checkins].sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
-  const allTriggers = [...state.triggers].sort((a, b) =>
+  const allCheckins = [...state.dailyNotes].sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+  const allTriggers = [...state.stories].sort((a, b) =>
     `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`)
   );
-  const allSleep = [...state.sleep].sort((a, b) =>
+  const allSleep = [...state.foods].sort((a, b) =>
     `${a.date} ${a.start || ""}`.localeCompare(`${b.date} ${b.start || ""}`)
   );
-  const allJournals = [...state.journals].sort((a, b) => `${a.date}`.localeCompare(`${b.date}`));
+  const allJournals = [...state.stories].sort((a, b) => `${a.date}`.localeCompare(`${b.date}`));
 
-  const checkins = filterByInsightPeriod(allCheckins.map(item => ({ ...item, date: checkinDate(item) })));
-  const triggers = filterByInsightPeriod(allTriggers);
-  const sleeps = filterByInsightPeriod(allSleep);
-  const journals = filterByInsightPeriod(allJournals);
+  const dailyNotes = filterByInsightPeriod(allCheckins.map(item => ({ ...item, date: checkinDate(item) })));
+  const stories = filterByInsightPeriod(allTriggers);
+  const foodss = filterByInsightPeriod(allSleep);
+  const stories = filterByInsightPeriod(allJournals);
 
   const periodLabel =
     state.insightPeriod === "all"
@@ -2097,35 +2097,35 @@ function renderInsights() {
 
   document.getElementById("insightPeriodNote").textContent = periodLabel;
 
-  const moodAvg = average(checkins.map(x => x.moodIntensity));
-  const thoughtAvg = average(checkins.map(x => x.thoughts));
-  const sleepAvg = average(sleeps.map(x => x.hours));
+  const moodAvg = average(dailyNotes.map(x => x.moodIntensity));
+  const thoughtAvg = average(dailyNotes.map(x => x.thoughts));
+  const foodsAvg = average(foodss.map(x => x.hours));
   const activeDays = uniqueActiveDates(
-    [...triggers, ...checkins.map(item => ({ date: item.date }))],
-    sleeps,
-    journals
+    [...stories, ...dailyNotes.map(item => ({ date: item.date }))],
+    foodss,
+    stories
   );
 
   document.getElementById("insightMoodIntensity").textContent =
-    checkins.length ? `${moodAvg.toFixed(1)}/10` : "-";
+    dailyNotes.length ? `${moodAvg.toFixed(1)}/10` : "-";
   document.getElementById("insightThoughtAverage").textContent =
-    checkins.length ? `${thoughtAvg.toFixed(1)}/10` : "-";
+    dailyNotes.length ? `${thoughtAvg.toFixed(1)}/10` : "-";
   document.getElementById("insightSleepAverage").textContent =
-    sleeps.length ? `${sleepAvg.toFixed(1)}j` : "-";
+    foodss.length ? `${foodsAvg.toFixed(1)}j` : "-";
   document.getElementById("insightActiveDays").textContent =
     activeDays ? String(activeDays) : "-";
 
-  renderInsightMaturity(checkins);
-  renderTriggerRanking(triggers);
-  renderRelationshipInsights(checkins, sleeps);
-  renderCharts(checkins, sleeps);
+  renderInsightMaturity(dailyNotes);
+  renderTriggerRanking(stories);
+  renderRelationshipInsights(dailyNotes, foodss);
+  renderCharts(dailyNotes, foodss);
 }
 
-function renderInsightMaturity(checkins) {
+function renderInsightMaturity(dailyNotes) {
   const root = document.getElementById("insightMaturity");
   const title = root.querySelector("strong");
   const copy = root.querySelector("span:last-child");
-  const count = checkins.length;
+  const count = dailyNotes.length;
 
   root.classList.remove("maturity-start", "maturity-early", "maturity-ready");
 
@@ -2144,9 +2144,9 @@ function renderInsightMaturity(checkins) {
   }
 }
 
-function renderTriggerRanking(triggers) {
+function renderTriggerRanking(stories) {
   const root = document.getElementById("triggerRanking");
-  const triggerCounts = countsBy(triggers.flatMap(x => x.triggers || []));
+  const triggerCounts = countsBy(stories.flatMap(x => x.stories || []));
   const entries = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]);
 
   if (!entries.length) {
@@ -2173,10 +2173,10 @@ function renderTriggerRanking(triggers) {
   }).join("");
 }
 
-function renderRelationshipInsights(checkins, sleeps) {
+function renderRelationshipInsights(dailyNotes, foodss) {
   const root = document.getElementById("relationshipInsights");
 
-  if (checkins.length < 5) {
+  if (dailyNotes.length < 5) {
     root.innerHTML = `
       <div class="relationship-empty">
         Catatanmu belum cukup banyak untuk melihat hubungan antar-data.
@@ -2187,20 +2187,20 @@ function renderRelationshipInsights(checkins, sleeps) {
   }
 
   const relationships = [];
-  const sleepByDate = {};
-  sleeps.forEach(item => {
+  const foodsByDate = {};
+  foodss.forEach(item => {
     if (!item.date) return;
-    if (!sleepByDate[item.date]) sleepByDate[item.date] = [];
-    sleepByDate[item.date].push(Number(item.hours));
+    if (!foodsByDate[item.date]) foodsByDate[item.date] = [];
+    foodsByDate[item.date].push(Number(item.hours));
   });
 
-  const sleepAvgDate = {};
-  Object.entries(sleepByDate).forEach(([date, values]) => {
-    sleepAvgDate[date] = average(values);
+  const foodsAvgDate = {};
+  Object.entries(foodsByDate).forEach(([date, values]) => {
+    foodsAvgDate[date] = average(values);
   });
 
   const latestCheckinByDate = {};
-  checkins.forEach(item => {
+  dailyNotes.forEach(item => {
     const current = latestCheckinByDate[item.date];
     if (!current || Number(item.createdAt || 0) > Number(current.createdAt || 0)) {
       latestCheckinByDate[item.date] = item;
@@ -2208,15 +2208,15 @@ function renderRelationshipInsights(checkins, sleeps) {
   });
 
   const paired = Object.entries(latestCheckinByDate)
-    .filter(([date]) => sleepAvgDate[date] !== undefined)
+    .filter(([date]) => foodsAvgDate[date] !== undefined)
     .map(([date, item]) => ({
       date,
       thoughts: Number(item.thoughts),
-      sleepHours: sleepAvgDate[date]
+      foodsHours: foodsAvgDate[date]
     }));
 
-  const shortSleep = paired.filter(x => x.sleepHours < 6);
-  const longerSleep = paired.filter(x => x.sleepHours >= 7);
+  const shortSleep = paired.filter(x => x.foodsHours < 6);
+  const longerSleep = paired.filter(x => x.foodsHours >= 7);
 
   if (shortSleep.length >= 3 && longerSleep.length >= 3) {
     const shortAvg = average(shortSleep.map(x => x.thoughts));
@@ -2231,7 +2231,7 @@ function renderRelationshipInsights(checkins, sleeps) {
   }
 
   const contextCounts = {};
-  checkins.forEach(item => {
+  dailyNotes.forEach(item => {
     (item.contexts || []).forEach(context => {
       contextCounts[context] = (contextCounts[context] || 0) + 1;
     });
@@ -2242,8 +2242,8 @@ function renderRelationshipInsights(checkins, sleeps) {
     .sort((a, b) => b[1] - a[1]);
 
   for (const [context] of eligibleContexts) {
-    const withContext = checkins.filter(item => (item.contexts || []).includes(context));
-    const withoutContext = checkins.filter(item => !(item.contexts || []).includes(context));
+    const withContext = dailyNotes.filter(item => (item.contexts || []).includes(context));
+    const withoutContext = dailyNotes.filter(item => !(item.contexts || []).includes(context));
 
     if (withContext.length >= 3 && withoutContext.length >= 3) {
       const withAvg = average(withContext.map(item => item.thoughts));
@@ -2279,7 +2279,7 @@ function destroyChart(name) {
   }
 }
 
-function renderCharts(checkins, sleeps) {
+function renderCharts(dailyNotes, foodss) {
   if (typeof Chart === "undefined") return;
 
   const dark = currentTheme() === "dark";
@@ -2288,7 +2288,7 @@ function renderCharts(checkins, sleeps) {
   Chart.defaults.borderColor = dark ? "rgba(225,221,210,.12)" : "rgba(123,123,114,.16)";
 
   destroyChart("moodFrequency");
-  const moodCounts = countsBy(checkins.map(x => x.mood).filter(Boolean));
+  const moodCounts = countsBy(dailyNotes.map(x => x.mood).filter(Boolean));
   const moodEntries = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]);
   const moodEmpty = document.getElementById("moodFrequencyEmpty");
   moodEmpty.classList.toggle("hidden", moodEntries.length > 0);
@@ -2321,10 +2321,10 @@ function renderCharts(checkins, sleeps) {
 
   destroyChart("thoughtTrend");
   const thoughtEmpty = document.getElementById("thoughtTrendEmpty");
-  thoughtEmpty.classList.toggle("hidden", checkins.length > 0);
+  thoughtEmpty.classList.toggle("hidden", dailyNotes.length > 0);
 
-  if (checkins.length) {
-    const recent = checkins.slice(-30);
+  if (dailyNotes.length) {
+    const recent = dailyNotes.slice(-30);
     state.charts.thoughtTrend = new Chart(document.getElementById("thoughtTrendChart"), {
       type: "line",
       data: {
@@ -2354,13 +2354,13 @@ function renderCharts(checkins, sleeps) {
     });
   }
 
-  destroyChart("sleepDuration");
-  const sleepEmpty = document.getElementById("sleepDurationEmpty");
-  sleepEmpty.classList.toggle("hidden", sleeps.length > 0);
+  destroyChart("foodsDuration");
+  const foodsEmpty = document.getElementById("foodsDurationEmpty");
+  foodsEmpty.classList.toggle("hidden", foodss.length > 0);
 
-  if (sleeps.length) {
-    const recentSleep = sleeps.slice(-30);
-    state.charts.sleepDuration = new Chart(document.getElementById("sleepDurationChart"), {
+  if (foodss.length) {
+    const recentSleep = foodss.slice(-30);
+    state.charts.foodsDuration = new Chart(document.getElementById("foodsDurationChart"), {
       type: "bar",
       data: {
         labels: recentSleep.map(x => formatDateShort(x.date)),
@@ -2455,17 +2455,17 @@ document.getElementById("refreshBtn").addEventListener("click", async () => {
     return;
   }
 
-  state.triggers = load(KEYS.triggers);
-  state.sleep = load(KEYS.sleep);
-  state.journals = load(KEYS.journals);
-  state.checkins = load(KEYS.checkins);
+  state.stories = load(KEYS.stories);
+  state.foods = load(KEYS.foods);
+  state.stories = load(KEYS.stories);
+  state.dailyNotes = load(KEYS.dailyNotes);
   renderAll();
   showToast("Data dimuat ulang.");
 });
 
 
 function totalRecords() {
-  return state.checkins.length + state.triggers.length + state.sleep.length + state.journals.length;
+  return state.dailyNotes.length + state.stories.length + state.foods.length + state.stories.length;
 }
 
 function renderDataMenu() {
@@ -2475,10 +2475,10 @@ function renderDataMenu() {
 
   if (stats) {
     stats.innerHTML = `
-      <span><b>${state.checkins.length}</b> check-in</span>
-      <span><b>${state.triggers.length}</b> trigger</span>
-      <span><b>${state.sleep.length}</b> tidur</span>
-      <span><b>${state.journals.length}</b> journal</span>
+      <span><b>${state.dailyNotes.length}</b> check-in</span>
+      <span><b>${state.stories.length}</b> trigger</span>
+      <span><b>${state.foods.length}</b> tidur</span>
+      <span><b>${state.stories.length}</b> journal</span>
     `;
   }
 
@@ -2649,28 +2649,28 @@ document.getElementById("unlockForm").addEventListener("submit", async event => 
 
   try {
     await unlockVault(password);
-    showToast("Teman Harian terbuka.");
+    showToast("Ruang Kecilku terbuka.");
   } catch {
     error.textContent = "Password tidak cocok atau data tidak dapat dibuka.";
     error.classList.remove("hidden");
     document.getElementById("unlockPassword").select();
   } finally {
     button.disabled = false;
-    button.textContent = "Buka Teman Harian";
+    button.textContent = "Buka Ruang Kecilku";
   }
 });
 
 document.getElementById("lockedResetBtn").addEventListener("click", () => {
   const ok = confirm(
-    "Hapus vault terenkripsi dan seluruh data Teman Harian di perangkat ini? Data tidak dapat dikembalikan."
+    "Hapus vault terenkripsi dan seluruh data Ruang Kecilku di perangkat ini? Data tidak dapat dikembalikan."
   );
   if (!ok) return;
 
   [
-    KEYS.checkins,
-    KEYS.triggers,
-    KEYS.sleep,
-    KEYS.journals,
+    KEYS.dailyNotes,
+    KEYS.stories,
+    KEYS.foods,
+    KEYS.stories,
     KEYS.securityMeta,
     KEYS.secureVault,
     KEYS.lastBackupAt
@@ -2715,12 +2715,12 @@ document.getElementById("exportBtn").addEventListener("click", async () => {
   } else {
     data = {
       version: 2,
-      app: "Teman Harian",
+      app: "Ruang Kecilku",
       exportedAt: new Date().toISOString(),
-      checkins: state.checkins,
-      triggers: state.triggers,
-      sleep: state.sleep,
-      journals: state.journals,
+      dailyNotes: state.dailyNotes,
+      stories: state.stories,
+      foods: state.foods,
+      stories: state.stories,
       settings: {
         theme: currentTheme()
       }
@@ -2778,14 +2778,14 @@ document.getElementById("importInput").addEventListener("change", async event =>
       return;
     }
 
-    if (!Array.isArray(data.triggers) || !Array.isArray(data.sleep) || !Array.isArray(data.journals)) {
+    if (!Array.isArray(data.stories) || !Array.isArray(data.foods) || !Array.isArray(data.stories)) {
       throw new Error("Format tidak valid");
     }
 
-    state.checkins = Array.isArray(data.checkins) ? data.checkins : [];
-    state.triggers = data.triggers;
-    state.sleep = data.sleep;
-    state.journals = data.journals;
+    state.dailyNotes = Array.isArray(data.dailyNotes) ? data.dailyNotes : [];
+    state.stories = data.stories;
+    state.foods = data.foods;
+    state.stories = data.stories;
 
     if (isSecurityEnabled()) {
       if (!isVaultUnlocked()) {
@@ -2794,10 +2794,10 @@ document.getElementById("importInput").addEventListener("change", async event =>
       await persistSecureVaultNow();
       removePlaintextData();
     } else {
-      localStorage.setItem(KEYS.checkins, JSON.stringify(state.checkins));
-      localStorage.setItem(KEYS.triggers, JSON.stringify(state.triggers));
-      localStorage.setItem(KEYS.sleep, JSON.stringify(state.sleep));
-      localStorage.setItem(KEYS.journals, JSON.stringify(state.journals));
+      localStorage.setItem(KEYS.dailyNotes, JSON.stringify(state.dailyNotes));
+      localStorage.setItem(KEYS.stories, JSON.stringify(state.stories));
+      localStorage.setItem(KEYS.foods, JSON.stringify(state.foods));
+      localStorage.setItem(KEYS.stories, JSON.stringify(state.stories));
     }
 
     if (data.settings?.theme === "dark" || data.settings?.theme === "light") {
@@ -2817,24 +2817,24 @@ document.getElementById("importInput").addEventListener("change", async event =>
 });
 
 document.getElementById("resetBtn").addEventListener("click", () => {
-  const ok = confirm("Hapus seluruh data Teman Harian di browser ini?");
+  const ok = confirm("Hapus seluruh data Ruang Kecilku di browser ini?");
   if (!ok) return;
 
   [
-    KEYS.checkins,
-    KEYS.triggers,
-    KEYS.sleep,
-    KEYS.journals,
+    KEYS.dailyNotes,
+    KEYS.stories,
+    KEYS.foods,
+    KEYS.stories,
     KEYS.securityMeta,
     KEYS.secureVault,
     KEYS.lastBackupAt
   ].forEach(key => localStorage.removeItem(key));
 
   activeVaultKey = null;
-  state.checkins = [];
-  state.triggers = [];
-  state.sleep = [];
-  state.journals = [];
+  state.dailyNotes = [];
+  state.stories = [];
+  state.foods = [];
+  state.stories = [];
 
   hideLockScreen();
   renderAll();

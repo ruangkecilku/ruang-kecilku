@@ -1,7 +1,7 @@
 {
-  "name": "Teman Harian",
-  "short_name": "Teman Harian",
-  "description": "Mood, overthinking, tidur, dan journal dengan penyimpanan lokal terenkripsi.",
+  "name": "Ruang Kecilku",
+  "short_name": "Ruang Kecilku",
+  "description": "Catatan kecil untuk makanan, perasaan, dan cerita harian.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
