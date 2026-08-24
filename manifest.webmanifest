@@ -1,12 +1,11 @@
 {
   "name": "Ruang Kecilku",
   "short_name": "Ruang Kecilku",
-  "description": "Catatan kecil untuk makanan, perasaan, dan cerita harian.",
+  "description": "Catatan kecil untuk makanan, mood, dan cerita harian.",
   "start_url": "./",
-  "scope": "./",
   "display": "standalone",
-  "background_color": "#F4EFE5",
-  "theme_color": "#F4EFE5",
+  "background_color": "#fff4d7",
+  "theme_color": "#fff4d7",
   "icons": [
     {
       "src": "icon-192.png",
