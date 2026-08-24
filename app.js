@@ -53,6 +53,17 @@ function showToast(message) {
   showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
+function mascotHtml(type, extraClass = "") {
+  const parts = [];
+  if (["hello", "happy", "calm", "neutral", "sleepy", "cloudy", "meal", "story", "peek"].includes(type)) {
+    parts.push(`<span class="wing"></span>`, `<span class="mouth"></span>`);
+  }
+  if (type === "meal") parts.push(`<span class="bowl"></span>`);
+  if (type === "story") parts.push(`<span class="book"></span>`);
+  if (type === "cloudy") parts.push(`<span class="cloud"></span>`);
+  return `<span class="mascot mascot--${type}${extraClass ? ` ${extraClass}` : ""}">${parts.join("")}</span>`;
+}
+
 function setDefaults() {
   document.getElementById("foodDate").value = todayLocal();
   document.getElementById("moodDate").value = todayLocal();
@@ -85,21 +96,45 @@ function messageForHome() {
     "Hari kecilmu tetap berarti, walau terasa sederhana.",
     "Pelan-pelan juga tetap langkah. Tidak perlu buru-buru.",
     "Simpan hal kecil yang hangat. Besok kamu bisa membacanya lagi.",
-    "Kalau harimu ringan, nikmati. Kalau berat, istirahat juga boleh."
+    "Kalau harimu ringan, nikmati. Kalau berat, istirahat juga boleh.",
+    "Tidak harus penuh, cukup jujur dan nyaman buatmu sendiri."
   ];
   const total = state.foods.length + state.moods.length + state.stories.length;
   return messages[total % messages.length];
 }
 
-function moodFaceClass(mood) {
+function moodMeta(mood) {
   const map = {
-    "Cerah": "happy",
-    "Tenang": "calm",
-    "Biasa": "neutral",
-    "Lelah": "sleepy",
-    "Mendung": "cloudy"
+    Cerah: { mascot: "happy", label: "cerah" },
+    Tenang: { mascot: "calm", label: "tenang" },
+    Biasa: { mascot: "neutral", label: "biasa" },
+    Lelah: { mascot: "sleepy", label: "lelah" },
+    Mendung: { mascot: "cloudy", label: "mendung" }
   };
-  return map[mood] || "neutral";
+  return map[mood] || { mascot: "neutral", label: "biasa" };
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const [year, month, day] = value.split("-");
+  if (!year || !month || !day) return value;
+  return `${day}/${month}/${year}`;
+}
+
+function truncate(text = "", max = 70) {
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function emptyState(type, title, text) {
+  return `
+    <div class="empty-state">
+      ${mascotHtml(type, "mascot--lg")}
+      <div>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(text)}</p>
+      </div>
+    </div>
+  `;
 }
 
 function renderHome() {
@@ -122,12 +157,12 @@ function renderHome() {
   document.getElementById("homeMessage").textContent = messageForHome();
 }
 
-function entryCard(content, withDeleteType, id) {
+function entryCard(content, type, id, extraClass = "") {
   return `
-    <article class="entry-card">
+    <article class="entry-card ${extraClass}">
       ${content}
       <div class="entry-actions">
-        <button class="delete-btn" type="button" data-delete="${withDeleteType}" data-id="${id}">Hapus</button>
+        <button class="delete-btn" type="button" data-delete="${type}" data-id="${id}">Hapus</button>
       </div>
     </article>
   `;
@@ -137,7 +172,7 @@ function renderFoods() {
   const list = document.getElementById("foodList");
   const foods = sortByDateDesc(state.foods);
   if (!foods.length) {
-    list.innerHTML = '<div class="empty-state">Belum ada catatan makan. Coba simpan makanan pertama hari ini.</div>';
+    list.innerHTML = emptyState("meal", "Belum ada catatan makan", "Coba simpan makanan pertama hari ini. Piyo akan menaruhnya di meja kecilmu.");
     return;
   }
 
@@ -147,7 +182,7 @@ function renderFoods() {
         <strong>${escapeHtml(item.menu)}</strong>
         <div class="entry-meta">${escapeHtml(item.meal)} • ${formatDate(item.date)}</div>
       </div>
-      <span class="entry-tag">${escapeHtml(item.feeling)}</span>
+      <span class="entry-tag">${mascotHtml("meal")}${escapeHtml(item.feeling)}</span>
     </div>
     <p>${escapeHtml(item.note || "Tidak ada catatan tambahan.")}</p>
   `, "food", item.id)).join("");
@@ -157,27 +192,30 @@ function renderMoods() {
   const list = document.getElementById("moodList");
   const moods = sortByDateDesc(state.moods);
   if (!moods.length) {
-    list.innerHTML = '<div class="empty-state">Belum ada catatan mood. Pilih warna harimu lebih dulu.</div>';
+    list.innerHTML = emptyState("happy", "Belum ada catatan mood", "Pilih ekspresi Piyo yang paling dekat dengan harimu lebih dulu.");
     return;
   }
 
-  list.innerHTML = moods.map(item => entryCard(`
-    <div class="entry-card-head">
-      <div>
-        <strong>${escapeHtml(item.mood)}</strong>
-        <div class="entry-meta">${formatDate(item.date)}</div>
+  list.innerHTML = moods.map(item => {
+    const mood = moodMeta(item.mood);
+    return entryCard(`
+      <div class="entry-card-head">
+        <div>
+          <strong>${escapeHtml(item.mood)}</strong>
+          <div class="entry-meta">${formatDate(item.date)}</div>
+        </div>
+        ${mascotHtml(mood.mascot)}
       </div>
-      <span class="piyo-face ${moodFaceClass(item.mood)}"></span>
-    </div>
-    <p>${escapeHtml(item.note || "Tidak ada catatan tambahan.")}</p>
-  `, "mood", item.id)).join("");
+      <p>${escapeHtml(item.note || "Tidak ada catatan tambahan.")}</p>
+    `, "mood", item.id, "entry-card--mood");
+  }).join("");
 }
 
 function renderStories() {
   const list = document.getElementById("storyList");
   const stories = sortByDateDesc(state.stories);
   if (!stories.length) {
-    list.innerHTML = '<div class="empty-state">Belum ada cerita. Tulis momen kecil yang ingin kamu simpan.</div>';
+    list.innerHTML = emptyState("story", "Belum ada cerita", "Tulis momen kecil yang ingin kamu simpan. Piyo akan menjaganya di rak cerita.");
     return;
   }
 
@@ -187,10 +225,10 @@ function renderStories() {
         <div class="entry-card-title">${escapeHtml(item.title)}</div>
         <div class="entry-meta">${formatDate(item.date)}</div>
       </div>
-      ${item.highlight ? `<span class="entry-tag">${escapeHtml(item.highlight)}</span>` : ""}
+      ${item.highlight ? `<span class="entry-tag">${mascotHtml("story")}${escapeHtml(item.highlight)}</span>` : mascotHtml("story")}
     </div>
     <p>${escapeHtml(item.content)}</p>
-  `, "story", item.id)).join("");
+  `, "story", item.id, "entry-card--story")).join("");
 }
 
 function countBy(items, field) {
@@ -239,23 +277,12 @@ function renderCollection() {
   const storyRecent = sortByDateDesc(state.stories).slice(0, 3);
 
   document.getElementById("collectionFoodRecent").innerHTML = foodRecent.length
-    ? foodRecent.map(item => `<article class="entry-card"><strong>${escapeHtml(item.menu)}</strong><p>${escapeHtml(item.meal)} • ${formatDate(item.date)}</p></article>`).join("")
-    : '<div class="empty-state">Belum ada catatan makan.</div>';
+    ? foodRecent.map(item => `<article class="entry-card"><div class="entry-card-head"><strong>${escapeHtml(item.menu)}</strong>${mascotHtml("meal")}</div><p>${escapeHtml(item.meal)} • ${formatDate(item.date)}</p></article>`).join("")
+    : emptyState("meal", "Belum ada catatan makan", "Setelah kamu mulai mengisi makanan, ringkasannya akan muncul di sini.");
 
   document.getElementById("collectionStoryRecent").innerHTML = storyRecent.length
-    ? storyRecent.map(item => `<article class="entry-card"><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(truncate(item.content, 90))}</p></article>`).join("")
-    : '<div class="empty-state">Belum ada cerita.</div>';
-}
-
-function formatDate(value) {
-  if (!value) return "-";
-  const [year, month, day] = value.split("-");
-  if (!year || !month || !day) return value;
-  return `${day}/${month}/${year}`;
-}
-
-function truncate(text, max = 70) {
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+    ? storyRecent.map(item => `<article class="entry-card entry-card--story"><div class="entry-card-head"><strong>${escapeHtml(item.title)}</strong>${mascotHtml("story")}</div><p>${escapeHtml(truncate(item.content, 90))}</p></article>`).join("")
+    : emptyState("story", "Belum ada cerita", "Cerita kecil yang kamu simpan akan berkumpul di sini.");
 }
 
 function renderAll() {
@@ -384,7 +411,7 @@ function setupEvents() {
   document.getElementById("exportBtn").addEventListener("click", () => {
     const data = {
       app: "Ruang Kecilku",
-      version: 2,
+      version: 4,
       exportedAt: new Date().toISOString(),
       foods: state.foods,
       moods: state.moods,
@@ -448,6 +475,6 @@ setPage("home");
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=3.1").catch(() => {});
+    navigator.serviceWorker.register("./sw.js?v=4.0").catch(() => {});
   });
 }
