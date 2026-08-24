@@ -1,7 +1,7 @@
 {
   "name": "Ruang Kecilku",
   "short_name": "Ruang Kecilku",
-  "description": "Catatan kecil untuk makanan, mood, dan cerita harian.",
+  "description": "Ruang kecil untuk menyimpan makanan, perasaan, dan cerita harian bersama Piyo.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#fff4d7",

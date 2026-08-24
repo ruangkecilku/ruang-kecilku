@@ -1,11 +1,11 @@
-const CACHE_NAME = "ruang-kecilku-v2";
+const CACHE_NAME = "ruang-kecilku-v3";
 const ASSETS = [
   "./",
-  "./index.html?v=2.0",
-  "./style.css?v=2.0",
-  "./app.js?v=2.0",
-  "./logo.svg?v=2.0",
-  "./manifest.webmanifest?v=2.0",
+  "./index.html?v=3.0",
+  "./style.css?v=3.0",
+  "./app.js?v=3.0",
+  "./logo.svg?v=3.0",
+  "./manifest.webmanifest?v=3.0",
   "./icon-192.png",
   "./icon-512.png"
 ];
